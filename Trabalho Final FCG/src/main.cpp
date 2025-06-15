@@ -270,7 +270,7 @@ int main(int argc, char* argv[])
     // Criamos uma janela do sistema operacional, com 800 colunas e 800 linhas
     // de pixels, e com título "INF01047 ...".
     GLFWwindow* window;
-    window = glfwCreateWindow(800, 800, "INF01047 - 323402 - Bernardo Fellini Oliveira", NULL, NULL);
+    window = glfwCreateWindow(800, 800, "Peasent's Meadow", NULL, NULL);
     if (!window)
     {
         glfwTerminate();
@@ -316,11 +316,17 @@ int main(int argc, char* argv[])
 
     LoadTextureImage("../../data/Kraken/11.png"); // TextureImage0
     LoadTextureImage("../../data/Kraken/12.png"); // TextureImage1
+    LoadTextureImage("../../data/chevalier/chevalier.bmp"); // TextureImage2
 
     // Construímos a representação de objetos geométricos através de malhas de triângulos
     ObjModel krakenmodel("../../data/Kraken/kraken.obj");
     ComputeNormals(&krakenmodel);
     BuildTrianglesAndAddToVirtualScene(&krakenmodel);
+
+    ObjModel chevaliermodel("../../data/chevalier/chevalier.obj");
+    ComputeNormals(&chevaliermodel);
+    BuildTrianglesAndAddToVirtualScene(&chevaliermodel);
+
 
     if ( argc > 1 )
     {
@@ -391,11 +397,11 @@ int main(int argc, char* argv[])
         // Abaixo definimos as varáveis que efetivamente definem a câmera virtual.
         // Veja slides 195-227 e 229-234 do documento Aula_08_Sistemas_de_Coordenadas.pdf.
 
-        glm::vec4 camera_view_vector = glm::vec4(x,y,z,0.0f);// Vetor "view", sentido para onde a câmera está virada
-        glm::vec4 camera_foward_move_direction = glm::vec4(x,0.0f,z,0.0f); // vetor que determina a direção para onde a câmera pode se mexer quando andamos para frente/trás. Impede a câmera de "voar"
+        jogador.setPlayerViewDirection(glm::vec4(x,y,z,0.0f));// Vetor "view" do jogador (para onde o modelo estará olhando)
+        glm::vec4 camera_foward_move_direction = glm::vec4(x,jogador.getPlayerPosition().y,z,0.0f); // vetor que determina a direção para onde a câmera pode se mexer quando andamos para frente/trás. Impede a câmera de "voar"
 
         // Determinação dos vetores w e u, que definem o sistema de coordenadas da câmera
-        glm::vec4 camera_w_vector = -camera_foward_move_direction / norm(camera_view_vector); // Vetor "w" aponta para "trás" da câmera
+        glm::vec4 camera_w_vector = -camera_foward_move_direction / norm(jogador.getPlayerViewDirection()); // Vetor "w" aponta para "trás" da câmera
         glm::vec4 camera_u_vector = crossproduct(camera_up_vector, camera_w_vector)/norm(crossproduct(camera_up_vector, camera_w_vector)); // Vetor "u" apojnta para "direita" da câmera
 
         // Normalização dos vetores w e u
@@ -403,22 +409,25 @@ int main(int argc, char* argv[])
         camera_u_vector = camera_u_vector / norm(camera_u_vector);
 
         // Atualização da posição c da câmera de acordo com a tecla do teclado pressionada
+        // Falta ainda fazer com que ela não dependa da taxa de atualização de quadros
         if(g_wKeyPressed){
-            camera_position_c -= camera_w_vector*camera_speed;
+            jogador.setPlayerPosition(jogador.getPlayerPosition() -= camera_w_vector*camera_speed);
         }
         if(g_sKeyPressed){
-            camera_position_c += camera_w_vector*camera_speed;
+            jogador.setPlayerPosition(jogador.getPlayerPosition() += camera_w_vector*camera_speed);
         }
         if(g_dKeyPressed){
-            camera_position_c += camera_u_vector*camera_speed;
+            jogador.setPlayerPosition(jogador.getPlayerPosition() += camera_u_vector*camera_speed);
         }
         if(g_aKeyPressed){
-            camera_position_c -= camera_u_vector*camera_speed;
+            jogador.setPlayerPosition(jogador.getPlayerPosition() -= camera_u_vector*camera_speed);
         }
+
+        camera_position_c = glm::vec4(jogador.getPlayerPosition().x, jogador.getPlayerPosition().y+5.0f, jogador.getPlayerPosition().z, jogador.getPlayerPosition().w);
 
         // Computamos a matriz "View" utilizando os parâmetros da câmera para
         // definir o sistema de coordenadas da câmera.  Veja slides 2-14, 184-190 e 236-242 do documento Aula_08_Sistemas_de_Coordenadas.pdf.
-        glm::mat4 view = Matrix_Camera_View(camera_position_c, camera_view_vector, camera_up_vector);
+        glm::mat4 view = Matrix_Camera_View(camera_position_c, jogador.getPlayerViewDirection(), camera_up_vector);
 
         // Agora computamos a matriz de Projeção.
         glm::mat4 projection;
@@ -426,7 +435,7 @@ int main(int argc, char* argv[])
         // Note que, no sistema de coordenadas da câmera, os planos near e far
         // estão no sentido negativo! Veja slides 176-204 do documento Aula_09_Projecoes.pdf.
         float nearplane = -0.1f;  // Posição do "near plane"
-        float farplane  = -10.0f; // Posição do "far plane"
+        float farplane  = -50.0f; // Posição do "far plane"
 
         if (g_UsePerspectiveProjection)
         {
@@ -457,10 +466,14 @@ int main(int argc, char* argv[])
         glUniformMatrix4fv(g_view_uniform       , 1 , GL_FALSE , glm::value_ptr(view));
         glUniformMatrix4fv(g_projection_uniform , 1 , GL_FALSE , glm::value_ptr(projection));
 
+        // defines para ajudar na ssociação dos modelos
         #define KRAKEN_HEAD 0
         #define KRAKEN_BODY 1
         #define KRAKEN_EYE  2
+        #define CHEVALIER   3
 
+        // NÃO USADO NO MOMENTO
+        // cálculo para determinar a atualização de desenhos para animações
         double tempo_atual = glfwGetTime();
         double deltat = tempo_atual - tempo_anterior;
         tempo_atual = tempo_atual;
@@ -476,6 +489,9 @@ int main(int argc, char* argv[])
 
         GLint loc_tex1 = glGetUniformLocation(g_GpuProgramID, "TextureImage1");
         glUniform1i(loc_tex1, 1); // Unidade GL_TEXTURE1
+
+        GLint loc_tex2 = glGetUniformLocation(g_GpuProgramID, "TextureImage2");
+        glUniform1i(loc_tex2, 2); // Unidade GL_TEXTURE1
 
         // desenhamos a "cabeça" do kraken
         model = Matrix_Translate(0.0f,0.0f,0.0f)
@@ -503,6 +519,14 @@ int main(int argc, char* argv[])
         glUniformMatrix4fv(g_model_uniform, 1, GL_FALSE, glm::value_ptr(model));
         glUniform1i(g_object_id_uniform, KRAKEN_EYE);
         DrawVirtualObject("Sub-Model_1");
+
+        // Desenhamos o personagem jogável
+        model = Matrix_Translate(jogador.getPlayerPosition().x,jogador.getPlayerPosition().y,jogador.getPlayerPosition().z)
+              * Matrix_Scale(3.0f,3.0f,3.0f)
+              * Matrix_Rotate_Y(atan2(jogador.getPlayerViewDirection().x, jogador.getPlayerViewDirection().z));
+        glUniformMatrix4fv(g_model_uniform, 1, GL_FALSE, glm::value_ptr(model));
+        glUniform1i(g_object_id_uniform, CHEVALIER);
+        DrawVirtualObject("chevalier");
 
 
         // Imprimimos na tela os ângulos de Euler que controlam a rotação do

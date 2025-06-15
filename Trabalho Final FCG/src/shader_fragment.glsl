@@ -22,6 +22,7 @@ in vec2 texcoords;
 #define KRAKEN_HEAD 0
 #define KRAKEN_BODY 1
 #define KRAKEN_EYE  2
+#define CHEVALIER   3
 uniform int object_id;
 
 // Parâmetros da axis-aligned bounding box (AABB) do modelo
@@ -31,6 +32,7 @@ uniform vec4 bbox_max;
 // Variáveis para acesso das imagens de textura
 uniform sampler2D TextureImage0;
 uniform sampler2D TextureImage1;
+uniform sampler2D TextureImage2;
 
 // O valor de saída ("out") de um Fragment Shader é a cor final do fragmento.
 out vec4 color;
@@ -137,6 +139,13 @@ void main()
         V = texcoords.y;
 
         Kd = texture(TextureImage1, vec2(U,V)).rgb;
+    }
+    else if ( object_id == CHEVALIER ){
+        // Coordenadas de textura do plano, obtidas do arquivo OBJ.
+        U = texcoords.x;
+        V = texcoords.y;
+
+        Kd = texture(TextureImage2, vec2(U,V)).rgb;
     }
     else // Objeto desconhecido = preto
     {
