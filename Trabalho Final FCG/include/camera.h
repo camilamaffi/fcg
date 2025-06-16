@@ -5,117 +5,84 @@
 #include <glm/vec4.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-struct view_vector_coordinates{
-    float x; //!< Member variable "x"
-    float y; //!< Member variable "y"
-    float z; //!< Member variable "z"
-}typedef DIRECAO;
-
-struct camera_angles{
-    float phi_angle;
-    float theta_angle;
-    float distance_from_origin;
-}typedef ANGULOS;
-
 class camera
 {
     public:
         /** Default constructor */
-        camera();
+        camera(glm::vec4 camera_position, glm::vec4 view_vector, glm::vec4 camera_foward_move_vector);
         /** Default destructor */
         virtual ~camera();
 
-        /** Set angulos
-         * \param angulos New value to set
+        /** Access camera_position
+         * \return The current value of camera_position
          */
-        void Setangulos(ANGULOS angulos) { this->angulos.phi_angle = angulos.phi_angle, this->angulos.theta_angle = angulos.theta_angle, this->angulos.distance_from_origin = angulos.distance_from_origin; }
+        glm::vec4 getCameraPosition() { return camera_position; }
 
-        /** Access angulos
-         * \return The current value of angulos
+        /** Set camera_position
+         * \param camera_position New value to set
          */
-         ANGULOS Getangulos() { return angulos; }
-
-        /** Set direcao
-         * \param direcao New value to set
-         */
-        void Setdirecao(DIRECAO direcao) { this->direcao.x = direcao.x, this->direcao.y = direcao.y, this->direcao.z = direcao.z; }
-
-        /** Access direcao
-         * \return The current value of direcao
-         */
-        DIRECAO Getdirecao() { return direcao; }
+        void setCameraPosition(glm::vec4 camera_position) { this->camera_position = camera_position; }
 
         /** Access view_vector
          * \return The current value of view_vector
          */
-        glm::vec4 Getview_vector() { return view_vector; }
+        glm::vec4 getViewVector() { return view_vector; }
 
         /** Set view_vector
-         * \param val New value to set
+         * \param view_vector New value to set
          */
-        void Setview_vector(glm::vec4 val) { view_vector = val; }
+        void setViewVector(glm::vec4 view_vector) { this->view_vector = view_vector; }
+
+        /** Access camera_foward_move_vector
+         * \return The current value of camera_foward_move_vector
+         */
+        glm::vec4 getCameraFowardMoveVector() { return camera_foward_move_vector; }
+
+        /** Set camera_foward_move_vector
+         * \param camera_foward_move_vector New value to set
+         */
+        void setCameraFowardMoveVector(glm::vec4 camera_foward_move_vector) { this->camera_foward_move_vector = camera_foward_move_vector; }
 
         /** Access up_vector
          * \return The current value of up_vector
          */
-        glm::vec4 Getup_vector() { return up_vector; }
-
-        /** Set up_vector
-         * \param val New value to set
-         */
-        void Setup_vector(glm::vec4 val) { up_vector = val; }
+        glm::vec4 getUpVector() { return up_vector; }
 
         /** Access w_vector
          * \return The current value of w_vector
          */
-        glm::vec4 Getw_vector() { return w_vector; }
+        glm::vec4 getCameraWVector() { return w_vector; }
 
         /** Set w_vector
-         * \param val New value to set
+         * \param w_vector New value to set
          */
-        void Setw_vector(glm::vec4 val) { w_vector = val; }
+        void setCameraWVector(glm::vec4 w_vector) { this->w_vector = w_vector; }
 
         /** Access u_vector
          * \return The current value of u_vector
          */
-        glm::vec4 Getu_vector() { return u_vector; }
+        glm::vec4 getCameraUVector() { return u_vector; }
 
         /** Set u_vector
-         * \param val New value to set
+         * \param u_vector New value to set
          */
-        void Setu_vector(glm::vec4 val) { u_vector = val; }
-
-        /** Access c_position
-         * \return The current value of c_position
-         */
-        glm::vec4 Getc_position() { return c_position; }
-
-        /** Set c_position
-         * \param val New value to set
-         */
-        void Setc_position(glm::vec4 val) { c_position = val; }
+        void setCameraUVector(glm::vec4 u_vector) { this->u_vector = u_vector; }
 
         /** Access camera_speed
          * \return The current value of camera_speed
          */
-        float Getcamera_speed() { return camera_speed; }
-
-        /** Set camera_speed
-         * \param val New value to set
-         */
-        void Setcamera_speed(float val) { camera_speed = val; }
+        float getCameraSpeed() { return camera_speed; }
 
     protected:
 
     private:
-        ANGULOS angulos;
-        DIRECAO direcao;
+        glm::vec4 camera_position; //!< Member variable "camera_position"
         glm::vec4 view_vector; //!< Member variable "view_vector"
-        glm::vec4 up_vector; //!< Member variable "up_vector"
+        glm::vec4 camera_foward_move_vector; //!< Member variable "camera_foward_move_vector"
+        const glm::vec4 up_vector = glm::vec4(0.0f,1.0f,0.0f,0.0f); //!< Member variable "up_vector" // Vetor "up" fixado para apontar para o "céu" (eixo Y global)
         glm::vec4 w_vector; //!< Member variable "w_vector"
         glm::vec4 u_vector; //!< Member variable "u_vector"
-        glm::vec4 c_position; //!< Member variable "c_position"
-        float camera_speed; //!< Member variable "camera_speed"
+        const float camera_speed = 0.018f; //!< Member variable "camera_speed"
 };
 
 #endif // CAMERA_H

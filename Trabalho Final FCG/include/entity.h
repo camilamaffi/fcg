@@ -16,35 +16,35 @@ class entity
         /** Access health_points
          * \return The current value of health_points
          */
-        int Gethealth_points() { return health_points; }
+        int getHealthPoints() { return health_points; }
         /** Set health_points
-         * \param val New value to set
+         * \param health_points New value to set
          */
-        void Sethealth_points(int val) { health_points = val; }
+        void setHealthPoints(int health_points) { this->health_points = health_points; }
         /** Access attack_power
          * \return The current value of attack_power
          */
-        int Getattack_power() { return attack_power; }
+        int getAttackPower() { return attack_power; }
         /** Set attack_power
-         * \param val New value to set
+         * \param attack_power New value to set
          */
-        void Setattack_power(int val) { attack_power = val; }
+        void setAttackPower(int attack_power) { this->attack_power = attack_power; }
         /** Access damage_resistance
          * \return The current value of damage_resistance
          */
-        int Getdamage_resistance() { return damage_resistance; }
+        int getDamageResistance() { return damage_resistance; }
         /** Set damage_resistance
-         * \param val New value to set
+         * \param damage_resistance New value to set
          */
-        void Setdamage_resistance(int val) { damage_resistance = val; }
+        void setDamageResistance(int damage_resistance) { this->damage_resistance = damage_resistance; }
         /** Access speed
          * \return The current value of speed
          */
-        float Getspeed() { return speed; }
+        float getSpeed() { return speed; }
         /** Set speed
-         * \param val New value to set
+         * \param damage_resistance New value to set
          */
-        void Setspeed(float val) { speed = val; }
+        void setSpeed(float speed) { this->speed = speed; }
 
     protected:
 
