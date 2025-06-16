@@ -217,6 +217,9 @@ float g_TorsoPositionY = 0.0f;
 // Variável que controla o tipo de projeção utilizada: perspectiva ou ortográfica.
 bool g_UsePerspectiveProjection = true;
 
+// Variável que controla se estamos jogando em primeira ou terceira pessoa
+bool g_CameraFirstPerson = true;
+
 // Variável que controla se o texto informativo será mostrado na tela.
 bool g_ShowInfoText = true;
 
@@ -237,9 +240,6 @@ bool g_wKeyPressed = false;
 bool g_sKeyPressed = false;
 bool g_dKeyPressed = false;
 bool g_aKeyPressed = false;
-
-// Fator de escalamento da velocidade de movimentação da posição c da câmera
-float camera_speed = 0.018f;
 
 int main(int argc, char* argv[])
 {
@@ -346,14 +346,11 @@ int main(int argc, char* argv[])
     glFrontFace(GL_CCW);
 
     // Vetor que define a velocidade do modelo
-    glm::vec4 velocidade = glm::vec4(1.0f,0.0f,1.0f,0.0f);
+    //glm::vec4 velocidade = glm::vec4(1.0f,0.0f,1.0f,0.0f);
 
-    double tempo_anterior = glfwGetTime();
+    //double tempo_anterior = glfwGetTime();
 
-    // Definição do objeto câmera e de seus atributos iniciais
-
-    glm::vec4 camera_position_c  = glm::vec4(2.5f,2.5f,2.5f,1.0f); // Ponto "c", centro da câmera. Definimos sua posição inicial aqui
-    glm::vec4 camera_up_vector   = glm::vec4(0.0f,1.0f,0.0f,0.0f); // Vetor "up" fixado para apontar para o "céu" (eixo Y global)
+    // Definição da direção inicial de visualização da câmera
 
     float r = g_CameraDistance;
     float y = r*sin(g_CameraPhi);
@@ -362,7 +359,12 @@ int main(int argc, char* argv[])
 
     // Inicialização da Instancia do jogador controlável. Jogador e câmera devem ter a mesma posição. Jogador deve sempre olhar para a mesma direção da câmera
     STANDARD_PLAYER_ATTRIBUTES atributos_jogador;
-    player jogador(atributos_jogador, camera_position_c, glm::vec4(x,y,z,0.0f));
+                                        // posição inicial             // direção para onde o modelo está olhando
+    player jogador(atributos_jogador, glm::vec4(2.5f,2.5f,2.5f,1.0f), glm::vec4(x,y,z,0.0f));
+
+    // Inicialização da instância da câmera (em primeira pessoa)
+        // posição inicial da câmera    // direção para onde a câmera está olhando    // direção para onde a câmera pode "andar" (não pode mudar sua posição vertical relativa ao modelo do jogador)
+    camera cam(jogador.getPlayerHeadPosition(), glm::vec4(x,y,z,0.0f), glm::vec4(x,0.0f,z,0.0f));
 
     // Ficamos em um loop infinito, renderizando, até que o usuário feche a janela
     while (!glfwWindowShouldClose(window))
@@ -389,45 +391,95 @@ int main(int argc, char* argv[])
         // variáveis g_CameraDistance, g_CameraPhi, e g_CameraTheta são
         // controladas pelo mouse do usuário. Veja as funções CursorPosCallback()
         // e ScrollCallback().
-        float r = g_CameraDistance;
-        float y = r*sin(g_CameraPhi);
-        float z = r*cos(g_CameraPhi)*cos(g_CameraTheta);
-        float x = r*cos(g_CameraPhi)*sin(g_CameraTheta);
+        r = g_CameraDistance;
+        y = r*sin(g_CameraPhi);
+        z = r*cos(g_CameraPhi)*cos(g_CameraTheta);
+        x = r*cos(g_CameraPhi)*sin(g_CameraTheta);
 
-        // Abaixo definimos as varáveis que efetivamente definem a câmera virtual.
-        // Veja slides 195-227 e 229-234 do documento Aula_08_Sistemas_de_Coordenadas.pdf.
+        // Definição da matriz "View", que determina o sistema de coordenadas da câmera
+        glm::mat4 view;
 
-        jogador.setPlayerViewDirection(glm::vec4(x,y,z,0.0f));// Vetor "view" do jogador (para onde o modelo estará olhando)
-        glm::vec4 camera_foward_move_direction = glm::vec4(x,jogador.getPlayerPosition().y,z,0.0f); // vetor que determina a direção para onde a câmera pode se mexer quando andamos para frente/trás. Impede a câmera de "voar"
+        // "F" para toggle
+        // se escolhemos a câmera em primeira pessoa
+        if(g_CameraFirstPerson){
 
-        // Determinação dos vetores w e u, que definem o sistema de coordenadas da câmera
-        glm::vec4 camera_w_vector = -camera_foward_move_direction / norm(jogador.getPlayerViewDirection()); // Vetor "w" aponta para "trás" da câmera
-        glm::vec4 camera_u_vector = crossproduct(camera_up_vector, camera_w_vector)/norm(crossproduct(camera_up_vector, camera_w_vector)); // Vetor "u" apojnta para "direita" da câmera
+            // Seta a posição a posição da câmera no mesmo local da cabeça do modelo do jogador (no começo, em caso de que a câmera seja trocada de terceira para primeira pessoa)
+            cam.setCameraPosition(jogador.getPlayerHeadPosition());
 
-        // Normalização dos vetores w e u
-        camera_w_vector = camera_w_vector / norm(camera_w_vector);
-        camera_u_vector = camera_u_vector / norm(camera_u_vector);
+            jogador.setPlayerViewDirection(glm::vec4(x,y,z,0.0f)); // Vetor "view" do jogador (para onde o modelo estará olhando)
 
-        // Atualização da posição c da câmera de acordo com a tecla do teclado pressionada
-        // Falta ainda fazer com que ela não dependa da taxa de atualização de quadros
-        if(g_wKeyPressed){
-            jogador.setPlayerPosition(jogador.getPlayerPosition() -= camera_w_vector*camera_speed);
+            //Determinação dos vetores view (free camera) e ForwardMove da câmera, que determinam para onde ela está olhando e para onde ela pode se mexer
+            cam.setViewVector(jogador.getPlayerViewDirection()); // olha para a mesma direção que o modelo
+            cam.setCameraFowardMoveVector(glm::vec4(x,0.0f,z,0.0f)); // vetor que determina a direção para onde a câmera pode se mexer quando andamos para frente/trás. Impede a câmera de "voar"
+
+            // Determinação dos vetores w e u, que definem o sistema de coordenadas da câmera
+            jogador.setPlayerWVector(cam.getCameraFowardMoveVector()/norm(cam.getCameraFowardMoveVector())); // Vetor "w" aponta para "trás" da câmera
+            jogador.setPlayerUVector(crossproduct(cam.getUpVector(), jogador.getPlayerWVector())/norm(crossproduct(cam.getUpVector(), jogador.getPlayerWVector()))); // Vetor "u" apojnta para "direita" da câmera
+
+            // Normalização dos vetores w e u
+            jogador.setPlayerWVector(jogador.getPlayerWVector()/norm(jogador.getPlayerWVector()));
+            jogador.setPlayerUVector(jogador.getPlayerUVector()/norm(jogador.getPlayerUVector()));
+
+            // Atualização da posição c da câmera de acordo com a tecla do teclado pressionada
+            // Falta ainda fazer com que ela não dependa da taxa de atualização de quadros
+            if(g_wKeyPressed){
+                jogador.setPlayerPosition(jogador.getPlayerPosition() += (jogador.getPlayerWVector()*jogador.getSpeed()));
+            }
+            if(g_sKeyPressed){
+                jogador.setPlayerPosition(jogador.getPlayerPosition() -= (jogador.getPlayerWVector()*jogador.getSpeed()));
+            }
+            if(g_dKeyPressed){
+                jogador.setPlayerPosition(jogador.getPlayerPosition() -= (jogador.getPlayerUVector()*jogador.getSpeed()));
+            }
+            if(g_aKeyPressed){
+                jogador.setPlayerPosition(jogador.getPlayerPosition() += (jogador.getPlayerUVector()*jogador.getSpeed()));
+            }
+
+            // Atualiza a posição da câmera de acordo com a movimentação do modelo
+            cam.setCameraPosition(jogador.getPlayerHeadPosition());
+
+            // Computamos a matriz "View" utilizando os parâmetros da câmera para
+            // definir o sistema de coordenadas da câmera.  Veja slides 2-14, 184-190 e 236-242 do documento Aula_08_Sistemas_de_Coordenadas.pdf.
+            view = Matrix_Camera_View(cam.getCameraPosition(), cam.getViewVector(), cam.getUpVector());
         }
-        if(g_sKeyPressed){
-            jogador.setPlayerPosition(jogador.getPlayerPosition() += camera_w_vector*camera_speed);
-        }
-        if(g_dKeyPressed){
-            jogador.setPlayerPosition(jogador.getPlayerPosition() += camera_u_vector*camera_speed);
-        }
-        if(g_aKeyPressed){
-            jogador.setPlayerPosition(jogador.getPlayerPosition() -= camera_u_vector*camera_speed);
+        // se escolhemos a câmera em terceira pessoa
+        else{
+            // Seta a posição da câmera um pouco atrás da direção onde o jogador está olhando (terceira pessoa)
+            cam.setCameraPosition(glm::vec4(jogador.getPlayerHeadPosition().x-(x*g_CameraDistance),jogador.getPlayerHeadPosition().y-(y*g_CameraDistance),jogador.getPlayerHeadPosition().z-(z*g_CameraDistance),1.0f));
+
+            //Determinação do vetor view da câmera, que determina para onde ela está olhando (look-at-camera)
+            cam.setViewVector(jogador.getPlayerHeadPosition() - cam.getCameraPosition());
+
+            jogador.setPlayerViewDirection(glm::vec4(x,0.0f,z,0.0f)); // Vetor "view" do jogador (para onde o modelo estará olhando)
+
+            // Determinação dos vetores w e u, que definem o sistema de coordenadas da câmera
+            jogador.setPlayerWVector(jogador.getPlayerViewDirection()/norm(cam.getCameraFowardMoveVector())); // Vetor "w" aponta para "trás" da câmera
+            jogador.setPlayerUVector(crossproduct(cam.getUpVector(), jogador.getPlayerWVector())/norm(crossproduct(cam.getUpVector(), jogador.getPlayerWVector()))); // Vetor "u" apojnta para "direita" da câmera
+
+            // Normalização dos vetores w e u
+            jogador.setPlayerWVector(jogador.getPlayerWVector()/norm(jogador.getPlayerWVector()));
+            jogador.setPlayerUVector(jogador.getPlayerUVector()/norm(jogador.getPlayerUVector()));
+
+            // Atualização da posição c da câmera de acordo com a tecla do teclado pressionada
+            // Falta ainda fazer com que ela não dependa da taxa de atualização de quadros
+            if(g_wKeyPressed){
+                jogador.setPlayerPosition(jogador.getPlayerPosition() += (jogador.getPlayerWVector()*jogador.getSpeed()));
+            }
+            if(g_sKeyPressed){
+                jogador.setPlayerPosition(jogador.getPlayerPosition() -= (jogador.getPlayerWVector()*jogador.getSpeed()));
+            }
+            if(g_dKeyPressed){
+                jogador.setPlayerPosition(jogador.getPlayerPosition() -= (jogador.getPlayerUVector()*jogador.getSpeed()));
+            }
+            if(g_aKeyPressed){
+                jogador.setPlayerPosition(jogador.getPlayerPosition() += (jogador.getPlayerUVector()*jogador.getSpeed()));
+            }
+
+            cam.setCameraPosition(glm::vec4(jogador.getPlayerHeadPosition().x-(x*g_CameraDistance),jogador.getPlayerHeadPosition().y-(y*g_CameraDistance),jogador.getPlayerHeadPosition().z-(z*g_CameraDistance),1.0f));
+
+            view = Matrix_Camera_View(cam.getCameraPosition(), cam.getViewVector(), cam.getUpVector());
         }
 
-        camera_position_c = glm::vec4(jogador.getPlayerPosition().x, jogador.getPlayerPosition().y+5.0f, jogador.getPlayerPosition().z, jogador.getPlayerPosition().w);
-
-        // Computamos a matriz "View" utilizando os parâmetros da câmera para
-        // definir o sistema de coordenadas da câmera.  Veja slides 2-14, 184-190 e 236-242 do documento Aula_08_Sistemas_de_Coordenadas.pdf.
-        glm::mat4 view = Matrix_Camera_View(camera_position_c, jogador.getPlayerViewDirection(), camera_up_vector);
 
         // Agora computamos a matriz de Projeção.
         glm::mat4 projection;
@@ -474,13 +526,13 @@ int main(int argc, char* argv[])
 
         // NÃO USADO NO MOMENTO
         // cálculo para determinar a atualização de desenhos para animações
-        double tempo_atual = glfwGetTime();
+        /*double tempo_atual = glfwGetTime();
         double deltat = tempo_atual - tempo_anterior;
         tempo_atual = tempo_atual;
 
         double vtx = deltat*velocidade.x;
         double vty = deltat*velocidade.y;
-        double vtz = deltat*velocidade.z;
+        double vtz = deltat*velocidade.z;*/
 
         //auxiliado por chatgpt
         // associando os samplers2D às texturas
@@ -1272,6 +1324,12 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
     if (key == GLFW_KEY_H && action == GLFW_PRESS)
     {
         g_ShowInfoText = !g_ShowInfoText;
+    }
+
+    // Se o usuário apertar a tecla F, fazemos um "toggle" entre primeira e terceira pessoa.
+    if (key == GLFW_KEY_F && action == GLFW_PRESS)
+    {
+        g_CameraFirstPerson = !g_CameraFirstPerson;
     }
 
     // Se o usuário apertar a tecla W, movemos a posição da câmera para "frente"
