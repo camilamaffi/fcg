@@ -317,6 +317,7 @@ int main(int argc, char* argv[])
     LoadTextureImage("../../data/Kraken/11.png"); // TextureImage0
     LoadTextureImage("../../data/Kraken/12.png"); // TextureImage1
     LoadTextureImage("../../data/chevalier/chevalier.bmp"); // TextureImage2
+    LoadTextureImage("../../data/skybox/cloudy_sky.jpg"); // TextureImage3
 
     // Construímos a representação de objetos geométricos através de malhas de triângulos
     ObjModel krakenmodel("../../data/Kraken/kraken.obj");
@@ -326,6 +327,14 @@ int main(int argc, char* argv[])
     ObjModel chevaliermodel("../../data/chevalier/chevalier.obj");
     ComputeNormals(&chevaliermodel);
     BuildTrianglesAndAddToVirtualScene(&chevaliermodel);
+
+    ObjModel skyboxmodel("../../data/skybox/sphere.obj");
+    ComputeNormals(&skyboxmodel);
+    // inverte as normais da esfera para servir de skybox (normais vão apontar para "dentro" do modelo)
+    for(auto& normal : skyboxmodel.attrib.normals){
+        normal = -normal;
+    }
+    BuildTrianglesAndAddToVirtualScene(&skyboxmodel);
 
 
     if ( argc > 1 )
@@ -360,7 +369,7 @@ int main(int argc, char* argv[])
     // Inicialização da Instancia do jogador controlável. Jogador e câmera devem ter a mesma posição. Jogador deve sempre olhar para a mesma direção da câmera
     STANDARD_PLAYER_ATTRIBUTES atributos_jogador;
                                         // posição inicial             // direção para onde o modelo está olhando
-    player jogador(atributos_jogador, glm::vec4(2.5f,2.5f,2.5f,1.0f), glm::vec4(x,y,z,0.0f));
+    player jogador(atributos_jogador, glm::vec4(0.0f,0.0f,0.0f,1.0f), glm::vec4(x,y,z,0.0f));
 
     // Inicialização da instância da câmera (em primeira pessoa)
         // posição inicial da câmera    // direção para onde a câmera está olhando    // direção para onde a câmera pode "andar" (não pode mudar sua posição vertical relativa ao modelo do jogador)
@@ -435,6 +444,9 @@ int main(int argc, char* argv[])
                 jogador.setPlayerPosition(jogador.getPlayerPosition() += (jogador.getPlayerUVector()*jogador.getSpeed()));
             }
 
+            // código que simula gravidade
+            //jogador.setPlayerPosition(jogador.getPlayerPosition() += (-cam.getUpVector()));
+
             // Atualiza a posição da câmera de acordo com a movimentação do modelo
             cam.setCameraPosition(jogador.getPlayerHeadPosition());
 
@@ -475,6 +487,9 @@ int main(int argc, char* argv[])
                 jogador.setPlayerPosition(jogador.getPlayerPosition() += (jogador.getPlayerUVector()*jogador.getSpeed()));
             }
 
+            // código que simula gravidade
+            //jogador.setPlayerPosition(jogador.getPlayerPosition() += (-cam.getUpVector()*jogador.getSpeed()));
+
             cam.setCameraPosition(glm::vec4(jogador.getPlayerHeadPosition().x-(x*g_CameraDistance),jogador.getPlayerHeadPosition().y-(y*g_CameraDistance),jogador.getPlayerHeadPosition().z-(z*g_CameraDistance),1.0f));
 
             view = Matrix_Camera_View(cam.getCameraPosition(), cam.getViewVector(), cam.getUpVector());
@@ -487,7 +502,7 @@ int main(int argc, char* argv[])
         // Note que, no sistema de coordenadas da câmera, os planos near e far
         // estão no sentido negativo! Veja slides 176-204 do documento Aula_09_Projecoes.pdf.
         float nearplane = -0.1f;  // Posição do "near plane"
-        float farplane  = -50.0f; // Posição do "far plane"
+        float farplane  = -150.0f; // Posição do "far plane"
 
         if (g_UsePerspectiveProjection)
         {
@@ -523,6 +538,7 @@ int main(int argc, char* argv[])
         #define KRAKEN_BODY 1
         #define KRAKEN_EYE  2
         #define CHEVALIER   3
+        #define SPHERE      4
 
         // NÃO USADO NO MOMENTO
         // cálculo para determinar a atualização de desenhos para animações
@@ -543,7 +559,24 @@ int main(int argc, char* argv[])
         glUniform1i(loc_tex1, 1); // Unidade GL_TEXTURE1
 
         GLint loc_tex2 = glGetUniformLocation(g_GpuProgramID, "TextureImage2");
-        glUniform1i(loc_tex2, 2); // Unidade GL_TEXTURE1
+        glUniform1i(loc_tex2, 2); // Unidade GL_TEXTURE2
+
+        GLint loc_tex3 = glGetUniformLocation(g_GpuProgramID, "TextureImage3");
+        glUniform1i(loc_tex3, 3); // Unidade GL_TEXTURE3
+
+        // desenhamos a esfera que serve como skybox
+        // Precisamos pedir para que o opengl faça o culling das faces externas da esfera
+        glCullFace(GL_FRONT);
+        model = Matrix_Translate(jogador.getPlayerPosition().x,jogador.getPlayerPosition().y,jogador.getPlayerPosition().z)
+              * Matrix_Scale(100.0f, 100.0f, 100.0f)
+              * Matrix_Rotate_Z(g_AngleZ)
+              * Matrix_Rotate_Y(g_AngleY)
+              * Matrix_Rotate_X(g_AngleX);
+        glUniformMatrix4fv(g_model_uniform, 1, GL_FALSE, glm::value_ptr(model));
+        glUniform1i(g_object_id_uniform, SPHERE);
+        DrawVirtualObject("the_sphere");
+        // Fazemos o culling das faces internas dos outros objetos
+        glCullFace(GL_BACK);
 
         // desenhamos a "cabeça" do kraken
         model = Matrix_Translate(0.0f,0.0f,0.0f)
