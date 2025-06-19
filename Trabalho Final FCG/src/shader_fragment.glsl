@@ -22,7 +22,7 @@ in vec2 texcoords;
 #define KRAKEN_BODY 1
 #define KRAKEN_EYE  2
 #define CHEVALIER   3
-#define SPHERE      4
+#define SKYBOX      4
 uniform int object_id;
 
 // Parâmetros da axis-aligned bounding box (AABB) do modelo
@@ -60,11 +60,13 @@ void main()
     // normais de cada vértice.
     vec4 n = normalize(normal);
 
-    // Vetor que define o sentido da fonte de luz em relação ao ponto atual.
-    vec4 l = normalize(vec4(0.0,10.0,0.0,0.0));
-
     // Vetor que define o sentido da câmera em relação ao ponto atual.
     vec4 v = normalize(camera_position - p);
+
+    // Vetor que define o sentido da fonte de luz em relação ao ponto atual.
+    // Fazer com que v == l no nosso caso conserta os erros estranhos de cor que estavam acontecendo em versões antigas
+    // Mantemos a distinção entre v e l por razões semânticas
+    vec4 l = normalize(camera_position - p);
 
     // Vetor que define o sentido da reflexão especular ideal.
     vec4 r = l + 2*n*(dot(n,l)); // PREENCHA AQUI o vetor de reflexão especular ideal
@@ -95,6 +97,8 @@ void main()
     }
     else if ( object_id == KRAKEN_BODY )
     {
+        /* Coordenadas de textura em Cube Projection Mapping.
+        // Não estão sendo usadas, mantidas aqui só para caso de precisarmos no futuro para outro objeto
         float minx = bbox_min.x;
         float maxx = bbox_max.x;
 
@@ -106,6 +110,7 @@ void main()
 
         U = (position_model.x-minx)/(maxx-minx);
         V = (position_model.y-miny)/(maxy-miny);
+        */
 
         // Coordenadas de textura do plano, obtidas do arquivo OBJ.
         U = texcoords.x;
@@ -114,6 +119,7 @@ void main()
         Kd = texture(TextureImage0, vec2(U,V)).rgb;
         Ks = texture(TextureImage0, vec2(U,V)).rgb;
 
+        // Coordenadas
         U = atan(normal.z, normal.x)/(2.0f*M_PI);
         V = asin(normal.y)/M_PI;
 
@@ -147,8 +153,9 @@ void main()
 
         Ka = texture(TextureImage3, vec2(U,V)).rgb;
     }
-    else if ( object_id == SPHERE ){
+    else if ( object_id == SKYBOX ){
 
+        // Coordenadas de textura em Sphere Projection Mapping
         vec4 bbox_center = (bbox_min + bbox_max) / 2.0;
 
         float ro = 1.0f; // raio = 1
@@ -174,10 +181,10 @@ void main()
     q = 1.0f;
 
     // Espectro da fonte de iluminação
-    vec3 I = vec3(1.0,1.0,1.0); // PREENCH AQUI o espectro da fonte de luz
+    vec3 I = vec3(0.6,0.6,0.6);
 
     // Espectro da luz ambiente
-    vec3 Ia = vec3(0.1,0.1,0.1); // PREENCHA AQUI o espectro da luz ambiente
+    vec3 Ia = vec3(0.2,0.2,0.2);
 
     // Termo difuso utilizando a lei dos cossenos de Lambert
     vec3 lambert_diffuse_term = Kd*I*max(0,dot(n,l));
@@ -186,10 +193,10 @@ void main()
     float lambert = max(0,dot(n,l));
 
     // Termo ambiente
-    vec3 ambient_term = Ka*Ia;//; // PREENCHA AQUI o termo ambiente
+    vec3 ambient_term = Ka*Ia;
 
     // Termo especular utilizando o modelo de iluminação de Phong
-    vec3 phong_specular_term  = Ks*I*pow(max(0,dot(r,v)),q);//vec3(0.0,0.0,0.0); // PREENCH AQUI o termo especular de Phong
+    vec3 phong_specular_term  = Ks*I*pow(max(0,dot(r,v)),q);
 
     // NOTE: Se você quiser fazer o rendering de objetos transparentes, é
     // necessário:
@@ -207,15 +214,12 @@ void main()
 
     // Cor final do fragmento calculada com uma combinação dos termos difuso,
     // especular, e ambiente. Veja slide 129 do documento Aula_17_e_18_Modelos_de_Iluminacao.pdf.
-    if ( object_id != SPHERE){
+    if ( object_id != SKYBOX){
         color.rgb = lambert_diffuse_term + ambient_term + phong_specular_term;
     }
     else{
-        color.rgb = Kd;
+        color.rgb = Kd; // Skybox não usa cor ambiente ou especular. É definida apenas pela textura
     }
-
-    //color.rgb = vec3(normalize(normal));
-
 
     // Cor final com correção gamma, considerando monitor sRGB.
     // Veja https://en.wikipedia.org/w/index.php?title=Gamma_correction&oldid=751281772#Windows.2C_Mac.2C_sRGB_and_TV.2Fvideo_standard_gammas

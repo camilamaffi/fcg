@@ -354,7 +354,7 @@ int main(int argc, char* argv[])
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW);
 
-    // Vetor que define a velocidade do modelo
+    // Vetor que define a velocidade do modelo (PROTÓRIPO)
     //glm::vec4 velocidade = glm::vec4(1.0f,0.0f,1.0f,0.0f);
 
     //double tempo_anterior = glfwGetTime();
@@ -538,7 +538,7 @@ int main(int argc, char* argv[])
         #define KRAKEN_BODY 1
         #define KRAKEN_EYE  2
         #define CHEVALIER   3
-        #define SPHERE      4
+        #define SKYBOX      4
 
         // NÃO USADO NO MOMENTO
         // cálculo para determinar a atualização de desenhos para animações
@@ -567,13 +567,13 @@ int main(int argc, char* argv[])
         // desenhamos a esfera que serve como skybox
         // Precisamos pedir para que o opengl faça o culling das faces externas da esfera
         glCullFace(GL_FRONT);
-        model = Matrix_Translate(jogador.getPlayerPosition().x,jogador.getPlayerPosition().y,jogador.getPlayerPosition().z)
+        model = Matrix_Translate(jogador.getPlayerPosition().x,jogador.getPlayerPosition().y,jogador.getPlayerPosition().z) // Skybox fica relativa ao jogador
               * Matrix_Scale(100.0f, 100.0f, 100.0f)
               * Matrix_Rotate_Z(g_AngleZ)
               * Matrix_Rotate_Y(g_AngleY)
               * Matrix_Rotate_X(g_AngleX);
         glUniformMatrix4fv(g_model_uniform, 1, GL_FALSE, glm::value_ptr(model));
-        glUniform1i(g_object_id_uniform, SPHERE);
+        glUniform1i(g_object_id_uniform, SKYBOX);
         DrawVirtualObject("the_sphere");
         // Fazemos o culling das faces internas dos outros objetos
         glCullFace(GL_BACK);

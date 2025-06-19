@@ -19,8 +19,7 @@ uniform mat4 projection;
 // Shader. Veja o arquivo "shader_fragment.glsl".
 out vec4 position_world;
 out vec4 position_model;
-// erros na cor estavam sendo causados por problemas da coordenada w das normais. Mudamos as normais para vec3 para consertar
-out vec3 normal;
+out vec4 normal;
 out vec2 texcoords;
 
 void main()
@@ -61,8 +60,8 @@ void main()
 
     // Normal do vértice atual no sistema de coordenadas global (World).
     // Veja slides 123-151 do documento Aula_07_Transformacoes_Geometricas_3D.pdf.
-    // Mudança no cálculo da normal do vértice atual para adaptar ao fato de que agora é vec3 e não vec4
-    normal = normalize(transpose(inverse(mat3(model))) * normal_coefficients.xyz);
+    normal = inverse(transpose(model)) * normal_coefficients;
+    normal.w = 0.0;
 
     // Coordenadas de textura obtidas do arquivo OBJ (se existirem!)
     texcoords = texture_coefficients;
