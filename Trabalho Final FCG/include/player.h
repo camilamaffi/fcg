@@ -7,7 +7,7 @@ struct atributos_base_jogador{
     const int health_points = 10;
     const int attack_power = 5;
     const int damage_resistance = 1;
-    const float speed = 0.018f;
+    const double speed = 5.0;
 }typedef STANDARD_PLAYER_ATTRIBUTES;
 
 class player : public entity
@@ -19,16 +19,13 @@ class player : public entity
         virtual ~player();
 
         void setPlayerPosition(glm::vec4 new_position) {
-            this->player_position = new_position;
+            setPosition(new_position);
             player_head_position.x = new_position.x;
             player_head_position.y = new_position.y+5.0f;
             player_head_position.z = new_position.z;
             player_head_position.w = 1.0f;
         }
-        void setPlayerViewDirection(glm::vec4 new_view_direction) {this->player_view_direction = new_view_direction ;}
-        glm::vec4 getPlayerPosition() {return this->player_position ;}
         glm::vec4 getPlayerHeadPosition() {return this->player_head_position ;}
-        glm::vec4 getPlayerViewDirection() {return this->player_view_direction ;}
 
         /** Access w_vector
          * \return The current value of w_vector
@@ -53,9 +50,7 @@ class player : public entity
     protected:
 
     private:
-        glm::vec4 player_position;
         glm::vec4 player_head_position;
-        glm::vec4 player_view_direction;
         glm::vec4 w_vector; //!< Member variable "w_vector"
         glm::vec4 u_vector; //!< Member variable "u_vector"
 };

@@ -9,7 +9,7 @@ class entity
 {
     public:
         /** Default constructor */
-        entity(int health_points, int attack_power, int damage_resistance, float speed);
+        entity(int health_points, int attack_power, int damage_resistance, float speed, glm::vec4 starter_position, glm::vec4 view_direction);
         /** Default destructor */
         virtual ~entity();
 
@@ -46,6 +46,12 @@ class entity
          */
         void setSpeed(float speed) { this->speed = speed; }
 
+        glm::vec4 getPosition() { return this->position; }
+        void setPosition(glm::vec4 new_position) { this->position = new_position; }
+
+        glm::vec4 getViewDirection() { return this->view_direction; }
+        void setViewDirection(glm::vec4 new_view_direction) { this->view_direction = new_view_direction; }
+
     protected:
 
     private:
@@ -53,7 +59,8 @@ class entity
         int attack_power; //!< Member variable "attack_power"
         int damage_resistance; //!< Member variable "damage_resistance"
         float speed; //!< Member variable "speed"
-
+        glm::vec4 position;
+        glm::vec4 view_direction;
 };
 
 #endif // ENTITY_H
