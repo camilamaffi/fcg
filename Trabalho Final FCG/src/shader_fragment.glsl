@@ -23,6 +23,7 @@ in vec2 texcoords;
 #define KRAKEN_EYE  2
 #define CHEVALIER   3
 #define SKYBOX      4
+#define DRAGON      5
 uniform int object_id;
 
 // Parâmetros da axis-aligned bounding box (AABB) do modelo
@@ -34,6 +35,7 @@ uniform sampler2D TextureImage0;
 uniform sampler2D TextureImage1;
 uniform sampler2D TextureImage2;
 uniform sampler2D TextureImage3;
+uniform sampler2D TextureImage4;
 
 // O valor de saída ("out") de um Fragment Shader é a cor final do fragmento.
 out vec4 color;
@@ -147,7 +149,6 @@ void main()
         Kd = texture(TextureImage2, vec2(U,V)).rgb;
         Ks = texture(TextureImage2, vec2(U,V)).rgb;
 
-        //
         U = atan(normal.z, normal.x)/(2.0f*M_PI);
         V = asin(normal.y)/M_PI;
 
@@ -169,6 +170,18 @@ void main()
         V = (phi + M_PI_2)/M_PI;
 
         Kd = texture(TextureImage3, vec2(U,V)).rgb;
+    }
+    else if( object_id == DRAGON ){
+        U = texcoords.x;
+        V = texcoords.y;
+
+        Kd = texture(TextureImage4, vec2(U,V)).rgb;
+        Ks = texture(TextureImage4, vec2(U,V)).rgb;
+
+        U = atan(normal.z, normal.x)/(2.0f*M_PI);
+        V = asin(normal.y)/M_PI;
+
+        Ka = texture(TextureImage3, vec2(U,V)).rgb;
     }
     else // Objeto desconhecido = preto
     {
