@@ -1,8 +1,9 @@
 # depslib dependency file v1.0
-1749875144 source:d:\users\berna\desktop\program_training\fundamentos de computacao grafica\trabalho final fcg\src\main.cpp
+1751476313 source:d:\users\berna\desktop\program_training\fundamentos de computacao grafica\trabalho final fcg\src\main.cpp
 	<cmath>
 	<cstdio>
 	<cstdlib>
+	<cfloat>
 	<map>
 	<stack>
 	<string>
@@ -19,19 +20,18 @@
 	<glm/gtc/type_ptr.hpp>
 	<tiny_obj_loader.h>
 	<stb_image.h>
-	"utils.h"
-	"matrices.h"
 	"entity.h"
 	"enemy.h"
 	"kraken.h"
 	"squid.h"
 	"player.h"
 	"camera.h"
+	"funcoes_prof.h"
 
-1747454333 source:d:\users\berna\desktop\program_training\fundamentos de computacao grafica\trabalho final fcg\src\player.cpp
+1751468330 source:d:\users\berna\desktop\program_training\fundamentos de computacao grafica\trabalho final fcg\src\player.cpp
 	"player.h"
 
-1747454326 d:\users\berna\desktop\program_training\fundamentos de computacao grafica\trabalho final fcg\include\player.h
+1751468357 d:\users\berna\desktop\program_training\fundamentos de computacao grafica\trabalho final fcg\include\player.h
 	"entity.h"
 
 1742808261 source:d:\users\berna\desktop\program_training\fundamentos de computacao grafica\trabalho final fcg\src\glad.c
@@ -900,14 +900,15 @@
 1742808261 d:\users\berna\desktop\program_training\fundamentos de computacao grafica\trabalho final fcg\include\utils.h
 	<cstdio>
 
-1746122584 d:\users\berna\desktop\program_training\fundamentos de computacao grafica\trabalho final fcg\include\matrices.h
+1751469753 d:\users\berna\desktop\program_training\fundamentos de computacao grafica\trabalho final fcg\include\matrices.h
 	<cstdio>
 	<cstdlib>
+	<cmath>
 	<glm/mat4x4.hpp>
 	<glm/vec4.hpp>
 	<glm/gtc/matrix_transform.hpp>
 
-1742808261 source:d:\users\berna\desktop\program_training\fundamentos de computacao grafica\trabalho final fcg\src\textrendering.cpp
+1751475023 source:d:\users\berna\desktop\program_training\fundamentos de computacao grafica\trabalho final fcg\src\textrendering.cpp
 	<string>
 	<glad/glad.h>
 	<GLFW/glfw3.h>
@@ -1013,36 +1014,36 @@
 1742808261 d:\users\berna\desktop\program_training\fundamentos de computacao grafica\trabalho final fcg\include\glm\ext\scalar_uint_sized.hpp
 	"../detail/setup.hpp"
 
-1747443873 source:d:\users\berna\desktop\program_training\fundamentos de computacao grafica\trabalho final fcg\src\entity.cpp
+1751468330 source:d:\users\berna\desktop\program_training\fundamentos de computacao grafica\trabalho final fcg\src\entity.cpp
 	"entity.h"
 
-1747447804 d:\users\berna\desktop\program_training\fundamentos de computacao grafica\trabalho final fcg\include\entity.h
+1751468401 d:\users\berna\desktop\program_training\fundamentos de computacao grafica\trabalho final fcg\include\entity.h
 	<glm/mat4x4.hpp>
 	<glm/vec4.hpp>
 	<glm/gtc/type_ptr.hpp>
 
-1747444008 source:d:\users\berna\desktop\program_training\fundamentos de computacao grafica\trabalho final fcg\src\enemy.cpp
+1751143473 source:d:\users\berna\desktop\program_training\fundamentos de computacao grafica\trabalho final fcg\src\enemy.cpp
 	"enemy.h"
 
-1747444013 d:\users\berna\desktop\program_training\fundamentos de computacao grafica\trabalho final fcg\include\enemy.h
+1751143695 d:\users\berna\desktop\program_training\fundamentos de computacao grafica\trabalho final fcg\include\enemy.h
 	<entity.h>
 
-1747444041 source:d:\users\berna\desktop\program_training\fundamentos de computacao grafica\trabalho final fcg\src\kraken.cpp
+1751143834 source:d:\users\berna\desktop\program_training\fundamentos de computacao grafica\trabalho final fcg\src\kraken.cpp
 	"kraken.h"
 
-1747444041 d:\users\berna\desktop\program_training\fundamentos de computacao grafica\trabalho final fcg\include\kraken.h
+1751143867 d:\users\berna\desktop\program_training\fundamentos de computacao grafica\trabalho final fcg\include\kraken.h
 	<enemy.h>
 
-1747444095 source:d:\users\berna\desktop\program_training\fundamentos de computacao grafica\trabalho final fcg\src\squid.cpp
+1751145339 source:d:\users\berna\desktop\program_training\fundamentos de computacao grafica\trabalho final fcg\src\squid.cpp
 	"squid.h"
 
-1747444095 d:\users\berna\desktop\program_training\fundamentos de computacao grafica\trabalho final fcg\include\squid.h
+1751145339 d:\users\berna\desktop\program_training\fundamentos de computacao grafica\trabalho final fcg\include\squid.h
 	<enemy.h>
 
-1747446798 source:d:\users\berna\desktop\program_training\fundamentos de computacao grafica\trabalho final fcg\src\camera.cpp
+1750028784 source:d:\users\berna\desktop\program_training\fundamentos de computacao grafica\trabalho final fcg\src\camera.cpp
 	"camera.h"
 
-1749772302 d:\users\berna\desktop\program_training\fundamentos de computacao grafica\trabalho final fcg\include\camera.h
+1750035454 d:\users\berna\desktop\program_training\fundamentos de computacao grafica\trabalho final fcg\include\camera.h
 	<glm/mat4x4.hpp>
 	<glm/vec4.hpp>
 	<glm/gtc/type_ptr.hpp>
@@ -1086,4 +1087,28 @@
 	<emmintrin.h>
 	<intrin.h>
 	<arm_neon.h>
+
+1751152518 source:d:\users\berna\desktop\program_training\fundamentos de computacao grafica\trabalho final fcg\src\boundingbox.cpp
+
+1751153125 source:d:\users\berna\desktop\program_training\fundamentos de computacao grafica\trabalho final fcg\src\collisions.cpp
+
+1751469305 source:d:\users\berna\desktop\program_training\fundamentos de computacao grafica\trabalho final fcg\src\funcoes_prof.cpp
+	<tiny_obj_loader.h>
+	"funcoes_prof.h"
+
+1751469421 d:\users\berna\desktop\program_training\fundamentos de computacao grafica\trabalho final fcg\include\funcoes_prof.h
+	<tiny_obj_loader.h>
+	<glad/glad.h>
+	<GLFW/glfw3.h>
+	<stb_image.h>
+	<glm/mat4x4.hpp>
+	<glm/vec4.hpp>
+	<glm/gtc/type_ptr.hpp>
+	"utils.h"
+	"matrices.h"
+	<string>
+	<stdexcept>
+	<stack>
+	<fstream>
+	<sstream>
 
