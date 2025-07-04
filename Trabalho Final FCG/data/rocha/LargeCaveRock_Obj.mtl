@@ -1,0 +1,11 @@
+# Created with Anim8or 1.00
+# Object "Large Cave Rock":
+
+newmtl Large_Cave_Rock
+Ka 0.239 0.239 0.239
+Kd 0.592 0.592 0.592
+Ks 0.216 0.216 0.216
+Ns 349.5
+map_Kd LargeCaveRock_Base-Diffuse.png
+map_Ks LargeCaveRock_Base-Specular.png
+
