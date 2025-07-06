@@ -59,6 +59,7 @@
 #include "rocha.h"
 #include "pedestal.h"
 #include "cave.h"
+#include "ground.h"
 
 // Headers de Funções originalmente definidas pelo professor Eduardo Gastal
 #include "funcoes_prof.h"
@@ -302,6 +303,10 @@ int main(int argc, char* argv[])
     glm::vec4 gravity = -cam.getUpVector();
 
     // Inicialização dos objetos inanimados:
+
+    // chão
+    ground chao(velocidade_objeto_inanimado, glm::vec4(0.0f,0.0f,0.0f,1.0f), glm::vec3(3.0f,1.0f,3.0f), glm::vec4(0.0f,0.0f,0.0f,0.0f));
+
     // rochas
     const int total_de_rochas = 5;
     rocha pedra1(velocidade_objeto_inanimado, glm::vec4(6.0f,0.0f,4.0f,1.0f), glm::vec3(1.0f,1.0f,1.0f), glm::vec4(0.0f,0.0f,0.0f,0.0f));
@@ -675,8 +680,8 @@ int main(int argc, char* argv[])
         }
 
         // Desenhamos o chão
-        model = Matrix_Translate(0.0f,0.0f,0.0f)
-              * Matrix_Scale(3.0f,1.0f,3.0f);
+        model = Matrix_Translate(chao.getPosition().x,chao.getPosition().y,chao.getPosition().z)
+              * Matrix_Scale(chao.getScalingFactor().x,chao.getScalingFactor().y,chao.getScalingFactor().z);
         glUniformMatrix4fv(shaders.g_model_uniform, 1, GL_FALSE, glm::value_ptr(model));
         glUniform1i(shaders.g_object_id_uniform, GROUND);
         DrawVirtualObject("groundAlow", g_VirtualScene);
