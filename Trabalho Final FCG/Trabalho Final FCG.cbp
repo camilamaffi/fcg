@@ -46,6 +46,8 @@
 		<Unit filename="include/bezierBuilder.h" />
 		<Unit filename="include/boundingBox.h" />
 		<Unit filename="include/camera.h" />
+		<Unit filename="include/cave.h" />
+		<Unit filename="include/collisions.h" />
 		<Unit filename="include/dejavufont.h" />
 		<Unit filename="include/dragon.h" />
 		<Unit filename="include/enemy.h" />
@@ -428,10 +430,13 @@
 		<Unit filename="include/glm/vec3.hpp" />
 		<Unit filename="include/glm/vec4.hpp" />
 		<Unit filename="include/glm/vector_relational.hpp" />
+		<Unit filename="include/ground.h" />
 		<Unit filename="include/kraken.h" />
 		<Unit filename="include/matrices.h" />
 		<Unit filename="include/object.h" />
+		<Unit filename="include/pedestal.h" />
 		<Unit filename="include/player.h" />
+		<Unit filename="include/rocha.h" />
 		<Unit filename="include/squid.h" />
 		<Unit filename="include/stb_image.h" />
 		<Unit filename="include/tiny_obj_loader.h" />
@@ -439,6 +444,7 @@
 		<Unit filename="src/bezierBuilder.cpp" />
 		<Unit filename="src/boundingBox.cpp" />
 		<Unit filename="src/camera.cpp" />
+		<Unit filename="src/cave.cpp" />
 		<Unit filename="src/collisions.cpp" />
 		<Unit filename="src/dragon.cpp" />
 		<Unit filename="src/enemy.cpp" />
@@ -448,10 +454,13 @@
 		<Unit filename="src/glad.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="src/ground.cpp" />
 		<Unit filename="src/kraken.cpp" />
 		<Unit filename="src/main.cpp" />
 		<Unit filename="src/object.cpp" />
+		<Unit filename="src/pedestal.cpp" />
 		<Unit filename="src/player.cpp" />
+		<Unit filename="src/rocha.cpp" />
 		<Unit filename="src/shader_fragment.glsl" />
 		<Unit filename="src/shader_vertex.glsl" />
 		<Unit filename="src/squid.cpp" />
