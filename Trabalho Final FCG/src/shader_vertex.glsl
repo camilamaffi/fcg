@@ -12,6 +12,7 @@ layout (location = 2) in vec2 texture_coefficients;
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
+uniform vec4 light_position;
 
 // Atributos de vértice que serão gerados como saída ("out") pelo Vertex Shader.
 // ** Estes serão interpolados pelo rasterizador! ** gerando, assim, valores
@@ -21,6 +22,8 @@ out vec4 position_world;
 out vec4 position_model;
 out vec4 normal;
 out vec2 texcoords;
+out vec3 cor_v;
+uniform sampler2D TextureImage6;
 
 void main()
 {
@@ -65,5 +68,21 @@ void main()
 
     // Coordenadas de textura obtidas do arquivo OBJ (se existirem!)
     texcoords = texture_coefficients;
+
+    //Cor Gouraud
+    vec4 l = normalize(light_position - position_world);
+    vec4 v = l;
+    vec4 n = normalize(normal);
+    vec3 I = vec3(0.6,0.6,0.6);
+    float lambert = max(0,dot(n,l));
+    float U = 0.0f;
+    float V = 0.0f;
+    vec3 Kd = texture(TextureImage6, vec2(U,V)).rgb;
+    vec3 Ks = texture(TextureImage6, vec2(U,V)).rgb;
+    vec4 r = l + 2*n*(dot(n,l));
+    vec3 lambert_diffuse_term = Kd*I*lambert;
+    float q = 1.0f;
+    vec3 phong_specular_term  = Ks*I*pow(max(0,dot(r,v)),q);
+    cor_v = lambert_diffuse_term + phong_specular_term;
 }
 

@@ -5,6 +5,7 @@
 // "shader_vertex.glsl" e "main.cpp".
 in vec4 position_world;
 in vec4 normal;
+in vec3 cor_v;
 
 // Matrizes computadas no código C++ e enviadas para a GPU
 uniform mat4 model;
@@ -306,7 +307,10 @@ void main()
 
     // Cor final do fragmento calculada com uma combinação dos termos difuso,
     // especular, e ambiente. Veja slide 129 do documento Aula_17_e_18_Modelos_de_Iluminacao.pdf.
-    if ( object_id != SKYBOX){
+    if ( object_id == GROUND){
+        color.rgb = cor_v;
+    }
+    else if ( object_id != SKYBOX){
         color.rgb = lambert_diffuse_term + ambient_term + phong_specular_term;
     }
     else{

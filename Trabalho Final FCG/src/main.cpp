@@ -489,6 +489,9 @@ int main(int argc, char* argv[])
             cam.setCameraPosition(glm::vec4(jogador.getPlayerHeadPosition().x-(x*g_CameraDistance),jogador.getPlayerHeadPosition().y-(y*g_CameraDistance),jogador.getPlayerHeadPosition().z-(z*g_CameraDistance),1.0f));
         }
 
+        glm::vec4 light_position = cam.getCameraPosition();
+        glUniformMatrix4fv(shaders.g_light_position_uniform, 1 , GL_FALSE , glm::value_ptr(light_position));
+
         view = Matrix_Camera_View(cam.getCameraPosition(), cam.getViewVector(), cam.getUpVector());
 
         // atualiza a posição das lulas

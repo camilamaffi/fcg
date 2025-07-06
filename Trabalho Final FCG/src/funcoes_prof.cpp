@@ -118,10 +118,11 @@ void LoadShadersFromFiles(SHADERS_DEFINITIONS& shaders)
     // Buscamos o endereço das variáveis definidas dentro do Vertex Shader.
     // Utilizaremos estas variáveis para enviar dados para a placa de vídeo
     // (GPU)! Veja arquivo "shader_vertex.glsl" e "shader_fragment.glsl".
-    shaders.g_model_uniform      = glGetUniformLocation(shaders.g_GpuProgramID, "model"); // Variável da matriz "model"
-    shaders.g_view_uniform       = glGetUniformLocation(shaders.g_GpuProgramID, "view"); // Variável da matriz "view" em shader_vertex.glsl
-    shaders.g_projection_uniform = glGetUniformLocation(shaders.g_GpuProgramID, "projection"); // Variável da matriz "projection" em shader_vertex.glsl
-    shaders.g_object_id_uniform  = glGetUniformLocation(shaders.g_GpuProgramID, "object_id"); // Variável "object_id" em shader_fragment.glsl
+    shaders.g_model_uniform           = glGetUniformLocation(shaders.g_GpuProgramID, "model"); // Variável da matriz "model"
+    shaders.g_view_uniform            = glGetUniformLocation(shaders.g_GpuProgramID, "view"); // Variável da matriz "view" em shader_vertex.glsl
+    shaders.g_projection_uniform      = glGetUniformLocation(shaders.g_GpuProgramID, "projection"); // Variável da matriz "projection" em shader_vertex.glsl
+    shaders.g_object_id_uniform       = glGetUniformLocation(shaders.g_GpuProgramID, "object_id"); // Variável "object_id" em shader_fragment.glsl
+    shaders.g_light_position_uniform  = glGetUniformLocation(shaders.g_GpuProgramID, "light_position"); // Variável "light_position" em shader_vertex.glsl
 }
 
 // Função que pega a matriz M e guarda a mesma no topo da pilha
