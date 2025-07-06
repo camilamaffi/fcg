@@ -13,9 +13,7 @@ struct atributos_base_lula{
 class squid : public enemy
 {
     public:
-        /** Default constructor */
-        squid(STANDARD_SQUID_ATTRIBUTES atributos_lula, glm::vec4 starter_position, glm::vec4 starter_view_direction);
-        /** Default destructor */
+        squid(STANDARD_SQUID_ATTRIBUTES atributos_lula, glm::vec4 starter_position, glm::vec4 starter_view_direction, glm::vec3 starter_scaling_factor);
         virtual ~squid();
 
         glm::vec4 getFirstSquidPosition() {return this->first_squid_position ;}
