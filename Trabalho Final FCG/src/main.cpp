@@ -53,6 +53,12 @@
 #include "squid.h"
 #include "player.h"
 #include "camera.h"
+#include "fireball.h"
+#include "dragon.h"
+#include "bezierBuilder.h"
+#include "rocha.h"
+#include "pedestal.h"
+#include "cave.h"
 
 // Headers de Funções originalmente definidas pelo professor Eduardo Gastal
 #include "funcoes_prof.h"
@@ -101,6 +107,9 @@ float g_CameraDistance = 2.5f; // Distância da câmera para a origem
 
 // Variável que controla se estamos jogando em primeira ou terceira pessoa
 bool g_CameraFirstPerson = true;
+
+// Variável que determina se o jogador está ou não realizando um ataque
+bool is_attacking = false;
 
 int main(int argc, char* argv[])
 {
@@ -199,6 +208,11 @@ int main(int argc, char* argv[])
     LoadTextureImage("../../data/chevalier/chevalier.bmp", g_NumLoadedTextures); // TextureImage2
     LoadTextureImage("../../data/skybox/cloudy_sky.jpg", g_NumLoadedTextures); // TextureImage3
     LoadTextureImage("../../data/dragon/Kinja_Dragern.png", g_NumLoadedTextures); // TextureImage4
+    LoadTextureImage("../../data/fireball/fireball.jpg", g_NumLoadedTextures); // TextureImage5
+    LoadTextureImage("../../data/ground/coast_rocks.jpg", g_NumLoadedTextures); // TextureImage6
+    LoadTextureImage("../../data/rocha/LargeCaveRock.png", g_NumLoadedTextures); // TextureImage7
+    LoadTextureImage("../../data/holder/oldgold.jpg", g_NumLoadedTextures); // TextureImage8
+    LoadTextureImage("../../data/caverna/ArchSmall_Base.png", g_NumLoadedTextures); // TextureImage9
 
     // Construímos a representação de objetos geométricos através de malhas de triângulos
     ObjModel krakenmodel("../../data/Kraken/kraken.obj");
@@ -220,6 +234,26 @@ int main(int argc, char* argv[])
     ObjModel dragonmodel("../../data/dragon/KinjaDragern.obj");
     ComputeNormals(&dragonmodel);
     BuildTrianglesAndAddToVirtualScene(&dragonmodel, g_VirtualScene);
+
+    ObjModel fireballmodel("../../data/fireball/sphere.obj");
+    ComputeNormals(&fireballmodel);
+    BuildTrianglesAndAddToVirtualScene(&fireballmodel, g_VirtualScene);
+
+    ObjModel groundmodel("../../data/ground/forrestground.obj");
+    ComputeNormals(&groundmodel);
+    BuildTrianglesAndAddToVirtualScene(&groundmodel, g_VirtualScene);
+
+    ObjModel rockmodel("../../data/rocha/LargeCaveRock.obj");
+    ComputeNormals(&rockmodel);
+    BuildTrianglesAndAddToVirtualScene(&rockmodel, g_VirtualScene);
+
+    ObjModel pedestalmodel("../../data/holder/objTorch.obj");
+    ComputeNormals(&pedestalmodel);
+    BuildTrianglesAndAddToVirtualScene(&pedestalmodel, g_VirtualScene);
+
+    ObjModel cavemodel("../../data/caverna/SmallArch.obj");
+    ComputeNormals(&cavemodel);
+    BuildTrianglesAndAddToVirtualScene(&cavemodel, g_VirtualScene);
 
     if ( argc > 1 )
     {
@@ -251,8 +285,14 @@ int main(int argc, char* argv[])
 
     // Inicialização da Instancia do jogador controlável. Jogador e câmera devem ter a mesma posição. Jogador deve sempre olhar para a mesma direção da câmera
     STANDARD_PLAYER_ATTRIBUTES atributos_jogador;
-                                        // posição inicial             // direção para onde o modelo está olhando
-    player jogador(atributos_jogador, glm::vec4(0.0f,0.0f,0.0f,1.0f), glm::vec4(x,y,z,0.0f));
+                                        // posição inicial  // direção para onde o modelo está olhando  //fator de escalamento
+    player jogador(atributos_jogador, glm::vec4(0.0f,0.0f,0.0f,1.0f), glm::vec4(x,y,z,0.0f), glm::vec3(3.0f,3.0f,3.0f));
+
+    // variáveis para ajudar na lógica de ataque do jogador
+    bool first_time_in_attack_loop = true;
+
+    double attack_inicial_time = 0.0;
+    fireball *bola_jogador = nullptr;
 
     // Inicialização da instância da câmera (em primeira pessoa)
         // posição inicial da câmera    // direção para onde a câmera está olhando    // direção para onde a câmera pode "andar" (não pode mudar sua posição vertical relativa ao modelo do jogador)
@@ -261,13 +301,54 @@ int main(int argc, char* argv[])
     // Gravidade do mundo é o oposto do vetor "up" da câmera
     glm::vec4 gravity = -cam.getUpVector();
 
+    // Inicialização dos objetos inanimados:
+    // rochas
+    const int total_de_rochas = 5;
+    rocha pedra1(velocidade_objeto_inanimado, glm::vec4(6.0f,0.0f,4.0f,1.0f), glm::vec3(1.0f,1.0f,1.0f), glm::vec4(0.0f,0.0f,0.0f,0.0f));
+    //rocha pedra2(velocidade_objeto_inanimado, glm::vec4(12.0f,0.0f,7.0f,1.0f), glm::vec3(1.0f,1.0f,1.0f), glm::vec4(0.0f,0.0f,0.0f,0.0f));
+    //rocha pedra3(velocidade_objeto_inanimado, glm::vec4(1.0f,0.0f,24.0f,1.0f), glm::vec3(1.0f,1.0f,1.0f), glm::vec4(0.0f,0.0f,0.0f,0.0f));
+    //rocha pedra4(velocidade_objeto_inanimado, glm::vec4(2.0f,0.0f,-5.0f,1.0f), glm::vec3(1.0f,1.0f,1.0f), glm::vec4(0.0f,0.0f,0.0f,0.0f));
+    //rocha pedra5(velocidade_objeto_inanimado, glm::vec4(-6.0f,0.0f,-4.0f,1.0f), glm::vec3(1.0f,1.0f,1.0f), glm::vec4(0.0f,0.0f,0.0f,0.0f));
+    rocha pedras[1] = {pedra1};//, pedra2, pedra3, pedra4, pedra5};
+
+    //pedestal
+    pedestal pedestal_do_dragao(velocidade_objeto_inanimado, glm::vec4(0.0f,0.0f,0.0f,1.0f), glm::vec3(1.0f,1.0f,1.0f), glm::vec4(0.0f,0.0f,0.0f,0.0f));
+
+    //caverna
+    cave caverna(velocidade_objeto_inanimado, glm::vec4(0.0f,0.0f,0.0f,1.0f), glm::vec3(1.0f,1.0f,1.0f), glm::vec4(0.0f,0.0f,0.0f,0.0f));
+
     // Inicialização dos inimigos
+    // lulas
     const int total_de_lulas = 3;
     STANDARD_SQUID_ATTRIBUTES atributos_lula;
-    squid lula1(atributos_lula, glm::vec4(3.0f,0.0f,5.0f,1.0f), glm::vec4(1.0f,0.0f,0.0f,0.0f));
-    squid lula2(atributos_lula, glm::vec4(10.0f,0.0f,1.0f,1.0f), glm::vec4(1.0f,0.0f,0.0f,0.0f));
-    squid lula3(atributos_lula, glm::vec4(6.0f,0.0f,9.0f,1.0f), glm::vec4(1.0f,0.0f,0.0f,0.0f));
+    squid lula1(atributos_lula, glm::vec4(3.0f,0.0f,5.0f,1.0f), glm::vec4(1.0f,0.0f,0.0f,0.0f), glm::vec3(1.0f,1.0f,1.0f));
+    squid lula2(atributos_lula, glm::vec4(10.0f,0.0f,1.0f,1.0f), glm::vec4(1.0f,0.0f,0.0f,0.0f), glm::vec3(1.0f,1.0f,1.0f));
+    squid lula3(atributos_lula, glm::vec4(6.0f,0.0f,9.0f,1.0f), glm::vec4(1.0f,0.0f,0.0f,0.0f), glm::vec3(1.0f,1.0f,1.0f));
     squid instancias_de_lulas[total_de_lulas] = {lula1, lula2, lula3};
+
+    //dragão
+    STANDARD_DRAGON_ATTRIBUTES atributos_dragao;
+    dragon dragao(atributos_dragao, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f), glm::vec4(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f) - jogador.getPosition()), glm::vec3(1.0,1.0,1.0));
+    std::vector<fireball*> bolas_de_fogo;
+    // tesouro que o dragão guarda (vai dar o poder de ataque à distância e permitir matar o chefe)
+    fireball *treasure_fireball = new fireball(velocidade_objeto_inanimado, glm::vec4(pedestal_do_dragao.getPosition().x,pedestal_do_dragao.getPosition().y+5.0f,pedestal_do_dragao.getPosition().z,1.0f), glm::vec3(1.5f,1.5f,1.5f), glm::vec4(0.0f,0.0f,0.0f,0.0f));
+
+    //Kraken
+    STANDARD_KRAKEN_ATTRIBUTES atributos_kraken;
+    kraken chefe(atributos_kraken, glm::vec4(0.0f, 0.0f, 30.0f, 1.0f), glm::vec4(0.0f, 0.0f, 30.0f, 0.0f), glm::vec3(5.0,5.0,5.0));
+
+    // objeto que calcula a curva de bezier para o movimento do dragão
+    double t_anterior = 0.0f;
+    double t_atual;
+    const double duracao_bezier = 5.0;
+    bool esta_na_direcao_bezier_original = true;
+    bezierBuilder bezier;
+
+    //pontos da curva bezier cúbica do dragão
+    glm::vec4 p0(0.0f, 0.0f, 0.0f, 1.0f);
+    glm::vec4 p1(2.0f, 5.0f, 0.0f, 1.0f);
+    glm::vec4 p2(5.0f, -5.0f, 0.0f, 1.0f);
+    glm::vec4 p3(10.0f, 0.0f, 0.0f, 1.0f);
 
     // Ficamos em um loop infinito, renderizando, até que o usuário feche a janela
     while (!glfwWindowShouldClose(window))
@@ -294,10 +375,13 @@ int main(int argc, char* argv[])
         // variáveis g_CameraDistance, g_CameraPhi, e g_CameraTheta são
         // controladas pelo mouse do usuário. Veja as funções CursorPosCallback()
         // e ScrollCallback().
-        r = g_CameraDistance;
-        y = r*sin(g_CameraPhi);
-        z = r*cos(g_CameraPhi)*cos(g_CameraTheta);
-        x = r*cos(g_CameraPhi)*sin(g_CameraTheta);
+        // Câmera não pode se mover enquanto o jogador estiver atacando corpo-a-corpo
+        if(!is_attacking){
+            r = g_CameraDistance;
+            y = r*sin(g_CameraPhi);
+            z = r*cos(g_CameraPhi)*cos(g_CameraTheta);
+            x = r*cos(g_CameraPhi)*sin(g_CameraTheta);
+        }
 
         // Definição da matriz "View", que determina o sistema de coordenadas da câmera
         glm::mat4 view;
@@ -338,18 +422,59 @@ int main(int argc, char* argv[])
         jogador.setPlayerWVector(jogador.getPlayerWVector()/norm(jogador.getPlayerWVector()));
         jogador.setPlayerUVector(jogador.getPlayerUVector()/norm(jogador.getPlayerUVector()));
 
-        // Atualização da posição do personagem controlável
-        if(teclas.g_wKeyPressed){
+        // Atualização da posição do personagem controlável. Jogador não pode se mexer se estiver atacando corpo-a-corpo
+        if(!is_attacking && teclas.g_wKeyPressed){
             jogador.setPlayerPosition(jogador.getPosition() += scalarMultiplication(jogador.getPlayerWVector(),jogador.getSpeed()*deltat));
         }
-        if(teclas.g_sKeyPressed){
+        if(!is_attacking && teclas.g_sKeyPressed){
             jogador.setPlayerPosition(jogador.getPosition() -= scalarMultiplication(jogador.getPlayerWVector(),jogador.getSpeed()*deltat));
         }
-        if(teclas.g_dKeyPressed){
+        if(!is_attacking && teclas.g_dKeyPressed){
             jogador.setPlayerPosition(jogador.getPosition() -= scalarMultiplication(jogador.getPlayerUVector(),jogador.getSpeed()*deltat));
         }
-        if(teclas.g_aKeyPressed){
+        if(!is_attacking && teclas.g_aKeyPressed){
             jogador.setPlayerPosition(jogador.getPosition() += scalarMultiplication(jogador.getPlayerUVector(),jogador.getSpeed()*deltat));
+        }
+
+        // verifica se o jogador fez um ataque
+        if(g_LeftMouseButtonPressed){
+            g_LeftMouseButtonPressed = false;
+            if(jogador.attackIsValid(tempo_atual)){
+                is_attacking = true;
+                first_time_in_attack_loop = true;
+            }
+        }
+        // segue a lógica de como o ataque deve funcionar, dependendo se o jogador desbloqueou ataques à distância ou não
+        if(is_attacking){
+            if(!jogador.getHasDragonPower()){
+                if(first_time_in_attack_loop){
+                    bola_jogador = new fireball(velocidade_objeto_inanimado, jogador.getPlayerHeadPosition() += scalarMultiplication(jogador.getViewDirection(),1.0f), glm::vec3(1.0,1.0,1.0), jogador.getViewDirection());
+                    first_time_in_attack_loop = false;
+                    attack_inicial_time = glfwGetTime();
+                }
+                else{
+                    if(glfwGetTime() - attack_inicial_time > jogador.getTempoParaJogadorAtacarDeNovo()){
+                        bola_jogador = nullptr;
+                        is_attacking = false;
+                    }
+                }
+            }
+            else{
+                if(first_time_in_attack_loop){
+                    bola_jogador = new fireball(velocidade_bola_de_fogo_dinamica, jogador.getPlayerHeadPosition() += scalarMultiplication(jogador.getViewDirection(),1.0f), glm::vec3(1.0,1.0,1.0), jogador.getViewDirection());
+                    first_time_in_attack_loop = false;
+                    attack_inicial_time = glfwGetTime();
+                }
+                else{
+                    if(glfwGetTime() - attack_inicial_time > jogador.getTempoParaJogadorAtacarDeNovo()){
+                        is_attacking = false;
+                    }
+                }
+            }
+        }
+        // movimento da bola de fogo se o jogador tiver desbloqueado ataques à distância. Continua até o jogador realizar um novo ataque (ou até a bola atingir um alvo)
+        if(bola_jogador != nullptr){
+            bola_jogador->setPosition(bola_jogador->getPosition() += scalarMultiplication(bola_jogador->getViewDirection(),bola_jogador->getSpeed()*deltat));
         }
 
         // Atualização da posição da câmera de acordo com a visão (primeira ou terceira pessoa)
@@ -380,6 +505,35 @@ int main(int argc, char* argv[])
             }
         }
 
+        // Atualização da posição do dragão
+             // tempo_atual % duracao_bezier
+        t_atual = fmod(tempo_atual, duracao_bezier) / duracao_bezier;
+        // se chegar ao fim do caminho da curva bezier, inverte a direção
+        if (t_atual - t_anterior < 0.0f){
+            esta_na_direcao_bezier_original = !esta_na_direcao_bezier_original;
+        }
+        t_anterior = t_atual;
+        if(esta_na_direcao_bezier_original){
+            dragao.setPosition(bezier.cubicBezier(p0, p1, p2, p3, t_atual));
+        }
+        else{
+            dragao.setPosition(bezier.cubicBezier(p3, p2, p1, p0, t_atual));
+        }
+        dragao.setViewDirection(jogador.getPosition() - dragao.getPosition());
+
+        // Se o jogador estiver a uma certa distância do dragão, o dragão o atacará com bolas de fogo
+        if(norm(jogador.getPosition() - dragao.getPosition()) < dragao.getDetectionRadius()){
+            if(dragao.attackIsValid(tempo_atual)){
+                fireball *nova_bola = new fireball(velocidade_bola_de_fogo_dinamica, dragao.getPosition(), glm::vec3(1.0,1.0,1.0), dragao.getViewDirection());
+                bolas_de_fogo.push_back(nova_bola);
+            }
+        }
+
+        // movimento das bolas de fogo do dragão
+        for(auto bola_de_fogo : bolas_de_fogo){
+            bola_de_fogo->setPosition(bola_de_fogo->getPosition() += scalarMultiplication(bola_de_fogo->getViewDirection(),deltat));
+        }
+
         // Agora computamos a matriz de Projeção.
         glm::mat4 projection;
 
@@ -408,6 +562,11 @@ int main(int argc, char* argv[])
         #define CHEVALIER   3
         #define SKYBOX      4
         #define DRAGON      5
+        #define FIREBALL    6
+        #define GROUND      7
+        #define ROCK        8
+        #define PEDESTAL    9
+        #define CAVE       10
 
         // FONTE ************************************************
         // conceito auxiliado por chatgpt. Todos os objetos estavam com a primeira textura setada em TextureImage0 até realizarmos esta mudança
@@ -425,10 +584,25 @@ int main(int argc, char* argv[])
         glUniform1i(loc_tex3, CHEVALIER); // Unidade GL_TEXTURE3
 
         GLint loc_tex4 = glGetUniformLocation(shaders.g_GpuProgramID, "TextureImage4");
-        glUniform1i(loc_tex4, SKYBOX); // Unidade GL_TEXTURE3
+        glUniform1i(loc_tex4, SKYBOX); // Unidade GL_TEXTURE4
 
         GLint loc_tex5 = glGetUniformLocation(shaders.g_GpuProgramID, "TextureImage5");
-        glUniform1i(loc_tex5, DRAGON); // Unidade GL_TEXTURE3
+        glUniform1i(loc_tex5, DRAGON); // Unidade GL_TEXTURE5
+
+        GLint loc_tex6 = glGetUniformLocation(shaders.g_GpuProgramID, "TextureImage6");
+        glUniform1i(loc_tex6, FIREBALL); // Unidade GL_TEXTURE6
+
+        GLint loc_tex7 = glGetUniformLocation(shaders.g_GpuProgramID, "TextureImage7");
+        glUniform1i(loc_tex7, GROUND); // Unidade GL_TEXTURE7
+
+        GLint loc_tex8 = glGetUniformLocation(shaders.g_GpuProgramID, "TextureImage8");
+        glUniform1i(loc_tex8, ROCK); // Unidade GL_TEXTURE8
+
+        GLint loc_tex9 = glGetUniformLocation(shaders.g_GpuProgramID, "TextureImage9");
+        glUniform1i(loc_tex9, PEDESTAL); // Unidade GL_TEXTURE9
+
+        GLint loc_tex10 = glGetUniformLocation(shaders.g_GpuProgramID, "TextureImage10");
+        glUniform1i(loc_tex10, CAVE); // Unidade GL_TEXTURE10
         // FONTE ************************************************
 
         // desenhamos a esfera que serve como skybox
@@ -445,6 +619,7 @@ int main(int argc, char* argv[])
         for(squid& instancia_de_lula : instancias_de_lulas){
             // desenhamos a "cabeça" das lulas
             model = Matrix_Translate(instancia_de_lula.getPosition().x,instancia_de_lula.getPosition().y,instancia_de_lula.getPosition().z)
+                  * Matrix_Scale(instancia_de_lula.getScalingFactor().x,instancia_de_lula.getScalingFactor().y,instancia_de_lula.getScalingFactor().z)
                   * Matrix_Rotate_Y(atan2(instancia_de_lula.getViewDirection().x, instancia_de_lula.getViewDirection().z));
             glUniformMatrix4fv(shaders.g_model_uniform, 1, GL_FALSE, glm::value_ptr(model));
             glUniform1i(shaders.g_object_id_uniform, KRAKEN_HEAD);
@@ -452,6 +627,7 @@ int main(int argc, char* argv[])
 
             // desenhamos o "corpo" das lulas
             model = Matrix_Translate(instancia_de_lula.getPosition().x,instancia_de_lula.getPosition().y,instancia_de_lula.getPosition().z)
+                  * Matrix_Scale(instancia_de_lula.getScalingFactor().x,instancia_de_lula.getScalingFactor().y,instancia_de_lula.getScalingFactor().z)
                   * Matrix_Rotate_Y(atan2(instancia_de_lula.getViewDirection().x, instancia_de_lula.getViewDirection().z));
             glUniformMatrix4fv(shaders.g_model_uniform, 1, GL_FALSE, glm::value_ptr(model));
             glUniform1i(shaders.g_object_id_uniform, KRAKEN_BODY);
@@ -459,6 +635,7 @@ int main(int argc, char* argv[])
 
             // Desenhamos o olho das lulas
             model = Matrix_Translate(instancia_de_lula.getPosition().x,instancia_de_lula.getPosition().y,instancia_de_lula.getPosition().z)
+                  * Matrix_Scale(instancia_de_lula.getScalingFactor().x,instancia_de_lula.getScalingFactor().y,instancia_de_lula.getScalingFactor().z)
                   * Matrix_Rotate_Y(atan2(instancia_de_lula.getViewDirection().x, instancia_de_lula.getViewDirection().z));
             glUniformMatrix4fv(shaders.g_model_uniform, 1, GL_FALSE, glm::value_ptr(model));
             glUniform1i(shaders.g_object_id_uniform, KRAKEN_EYE);
@@ -467,16 +644,98 @@ int main(int argc, char* argv[])
 
         // Desenhamos o personagem jogável
         model = Matrix_Translate(jogador.getPosition().x,jogador.getPosition().y,jogador.getPosition().z)
-              * Matrix_Scale(3.0f,3.0f,3.0f)
+              * Matrix_Scale(jogador.getScalingFactor().x,jogador.getScalingFactor().y,jogador.getScalingFactor().z)
               * Matrix_Rotate_Y(atan2(jogador.getViewDirection().x, jogador.getViewDirection().z));
         glUniformMatrix4fv(shaders.g_model_uniform, 1, GL_FALSE, glm::value_ptr(model));
         glUniform1i(shaders.g_object_id_uniform, CHEVALIER);
         DrawVirtualObject("chevalier", g_VirtualScene);
 
-        model = Matrix_Translate(0.0,0.0,0.0);
+        // Desenhamos o Dragão
+        model = Matrix_Translate(dragao.getPosition().x,dragao.getPosition().y,dragao.getPosition().z)
+              * Matrix_Scale(dragao.getScalingFactor().x,dragao.getScalingFactor().y,dragao.getScalingFactor().z)
+              * Matrix_Rotate_Y(atan2(dragao.getViewDirection().x, dragao.getViewDirection().z));
         glUniformMatrix4fv(shaders.g_model_uniform, 1, GL_FALSE, glm::value_ptr(model));
         glUniform1i(shaders.g_object_id_uniform, DRAGON);
         DrawVirtualObject("KinjaDragern", g_VirtualScene);
+
+        // Desenhamos o ataque do jogador, se existir
+        if(bola_jogador != nullptr){
+            model = Matrix_Translate(bola_jogador->getPosition().x,bola_jogador->getPosition().y,bola_jogador->getPosition().z);
+            glUniformMatrix4fv(shaders.g_model_uniform, 1, GL_FALSE, glm::value_ptr(model));
+            glUniform1i(shaders.g_object_id_uniform, FIREBALL);
+            DrawVirtualObject("sphere", g_VirtualScene);
+        }
+
+        // Desenhamos as bolas de fogo do dragão
+        for(auto bola_de_fogo : bolas_de_fogo){
+            model = Matrix_Translate(bola_de_fogo->getPosition().x,bola_de_fogo->getPosition().y,bola_de_fogo->getPosition().z);
+            glUniformMatrix4fv(shaders.g_model_uniform, 1, GL_FALSE, glm::value_ptr(model));
+            glUniform1i(shaders.g_object_id_uniform, FIREBALL);
+            DrawVirtualObject("sphere", g_VirtualScene);
+        }
+
+        // Desenhamos o chão
+        model = Matrix_Translate(0.0f,0.0f,0.0f)
+              * Matrix_Scale(3.0f,1.0f,3.0f);
+        glUniformMatrix4fv(shaders.g_model_uniform, 1, GL_FALSE, glm::value_ptr(model));
+        glUniform1i(shaders.g_object_id_uniform, GROUND);
+        DrawVirtualObject("groundAlow", g_VirtualScene);
+
+        // Desenhamos o Kraken:
+        ///////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // desenhamos a "cabeça" do kraken
+            model = Matrix_Translate(chefe.getPosition().x,chefe.getPosition().y,chefe.getPosition().z)
+                  * Matrix_Scale(chefe.getScalingFactor().x,chefe.getScalingFactor().y,chefe.getScalingFactor().z)
+                  * Matrix_Rotate_Y(atan2(chefe.getViewDirection().x, chefe.getViewDirection().z));
+            glUniformMatrix4fv(shaders.g_model_uniform, 1, GL_FALSE, glm::value_ptr(model));
+            glUniform1i(shaders.g_object_id_uniform, KRAKEN_HEAD);
+            DrawVirtualObject("Sub-Model_0.001", g_VirtualScene);
+
+            // desenhamos o "corpo" do kraken
+            model = Matrix_Translate(chefe.getPosition().x,chefe.getPosition().y,chefe.getPosition().z)
+                  * Matrix_Scale(chefe.getScalingFactor().x,chefe.getScalingFactor().y,chefe.getScalingFactor().z)
+                  * Matrix_Rotate_Y(atan2(chefe.getViewDirection().x, chefe.getViewDirection().z));
+            glUniformMatrix4fv(shaders.g_model_uniform, 1, GL_FALSE, glm::value_ptr(model));
+            glUniform1i(shaders.g_object_id_uniform, KRAKEN_BODY);
+            DrawVirtualObject("Sub-Model_0", g_VirtualScene);
+
+            // Desenhamos o olho do kraken
+            model = Matrix_Translate(chefe.getPosition().x,chefe.getPosition().y,chefe.getPosition().z)
+                  * Matrix_Scale(chefe.getScalingFactor().x,chefe.getScalingFactor().y,chefe.getScalingFactor().z)
+                  * Matrix_Rotate_Y(atan2(chefe.getViewDirection().x, chefe.getViewDirection().z));
+            glUniformMatrix4fv(shaders.g_model_uniform, 1, GL_FALSE, glm::value_ptr(model));
+            glUniform1i(shaders.g_object_id_uniform, KRAKEN_EYE);
+            DrawVirtualObject("Sub-Model_1", g_VirtualScene);
+        ///////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+        // desenhamos as rochas:
+        /*for(auto& pedra : pedras){
+            model = Matrix_Translate(pedra.getPosition().x,pedra.getPosition().y,pedra.getPosition().z)
+                  * Matrix_Scale(pedra.getScalingFactor().x,pedra.getScalingFactor().y,pedra.getScalingFactor().z);
+            glUniformMatrix4fv(shaders.g_model_uniform, 1, GL_FALSE, glm::value_ptr(model));
+            glUniform1i(shaders.g_object_id_uniform, ROCK);
+            DrawVirtualObject("LargeCaveRock", g_VirtualScene);
+        }*/
+
+        // desenhamos o pedestal:
+        model = Matrix_Translate(pedestal_do_dragao.getPosition().x,pedestal_do_dragao.getPosition().y,pedestal_do_dragao.getPosition().z)
+                * Matrix_Scale(pedestal_do_dragao.getScalingFactor().x,pedestal_do_dragao.getScalingFactor().y,pedestal_do_dragao.getScalingFactor().z);
+        glUniformMatrix4fv(shaders.g_model_uniform, 1, GL_FALSE, glm::value_ptr(model));
+        glUniform1i(shaders.g_object_id_uniform, PEDESTAL);
+        DrawVirtualObject("group torch", g_VirtualScene);
+
+        // Desenhamos a bola de fogo que fica em cima do pedestal, se ela não foi coletada
+        model = Matrix_Translate(treasure_fireball->getPosition().x,treasure_fireball->getPosition().y,treasure_fireball->getPosition().z);
+        glUniformMatrix4fv(shaders.g_model_uniform, 1, GL_FALSE, glm::value_ptr(model));
+        glUniform1i(shaders.g_object_id_uniform, FIREBALL);
+        DrawVirtualObject("sphere", g_VirtualScene);
+
+        // desenhamos a caverna:
+        model = Matrix_Translate(caverna.getPosition().x,caverna.getPosition().y,caverna.getPosition().z)
+                * Matrix_Scale(caverna.getScalingFactor().x,caverna.getScalingFactor().y,caverna.getScalingFactor().z);
+        glUniformMatrix4fv(shaders.g_model_uniform, 1, GL_FALSE, glm::value_ptr(model));
+        glUniform1i(shaders.g_object_id_uniform, CAVE);
+        DrawVirtualObject("Arch Small", g_VirtualScene);
 
         // Imprimimos na tela informação sobre o número de quadros renderizados
         // por segundo (frames per second).
@@ -561,28 +820,31 @@ void CursorPosCallback(GLFWwindow* window, double xpos, double ypos)
     // parâmetros que definem a posição da câmera dentro da cena virtual.
     // Assim, temos que o usuário consegue controlar a câmera.
 
-        // Deslocamento do cursor do mouse em x e y de coordenadas de tela!
-    float dx = xpos - g_LastCursorPosX;
-    float dy = ypos - g_LastCursorPosY;
+    // Deslocamento do cursor do mouse em x e y de coordenadas de tela!
+    if(!is_attacking){
+        float dx = xpos - g_LastCursorPosX;
+        float dy = ypos - g_LastCursorPosY;
 
-    // Atualizamos parâmetros da câmera com os deslocamentos
-    g_CameraTheta -= 0.01f*dx;
-    g_CameraPhi   -= 0.01f*dy;
 
-    // Em coordenadas esféricas, o ângulo phi deve ficar entre -pi/2 e +pi/2.
-    float phimax = 3.141592f/2;
-    float phimin = -phimax;
+        // Atualizamos parâmetros da câmera com os deslocamentos
+        g_CameraTheta -= 0.01f*dx;
+        g_CameraPhi   -= 0.01f*dy;
 
-    if (g_CameraPhi > phimax)
-        g_CameraPhi = phimax;
+        // Em coordenadas esféricas, o ângulo phi deve ficar entre -pi/2 e +pi/2.
+        float phimax = 3.141592f/2;
+        float phimin = -phimax;
 
-    if (g_CameraPhi < phimin)
-        g_CameraPhi = phimin;
+        if (g_CameraPhi > phimax)
+            g_CameraPhi = phimax;
 
-    // Atualizamos as variáveis globais para armazenar a posição atual do
-    // cursor como sendo a última posição conhecida do cursor.
-    g_LastCursorPosX = xpos;
-    g_LastCursorPosY = ypos;
+        if (g_CameraPhi < phimin)
+            g_CameraPhi = phimin;
+
+        // Atualizamos as variáveis globais para armazenar a posição atual do
+        // cursor como sendo a última posição conhecida do cursor.
+        g_LastCursorPosX = xpos;
+        g_LastCursorPosY = ypos;
+    }
 }
 
 // Função callback chamada sempre que o usuário movimenta a "rodinha" do mouse.
