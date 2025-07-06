@@ -104,6 +104,7 @@ struct definicoes_de_programa_de_gpu{
     GLint g_object_id_uniform;
     GLint g_bbox_min_uniform;
     GLint g_bbox_max_uniform;
+    GLint g_light_position_uniform;
 }typedef SHADERS_DEFINITIONS;
 
 // Declaração de funções utilizadas para pilha de matrizes de modelagem.
