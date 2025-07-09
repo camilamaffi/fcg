@@ -5,11 +5,18 @@
 #include <glm/vec4.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+// Headers de Funções originalmente definidas pelo professor Eduardo Gastal
+#include "matrices.h"
+#include "funcoes_prof.h"
+#include "bounding_box.h"
+#include "bounding_sphere.h"
+#include "bounding_plane.h"
+
 const float velocidade_objeto_inanimado = 0.0f;
 
 class object{
     public:
-        object(float speed, glm::vec4 starter_position, glm::vec3 starter_scaling_factor, glm::vec4 starter_view_direction);
+        object(float speed, glm::vec4 starter_position, glm::vec3 starter_scaling_factor, glm::vec4 starter_view_direction, SceneObject objeto);
         ~object();
 
         float getSpeed() { return speed; }
@@ -24,11 +31,22 @@ class object{
         glm::vec4 getViewDirection() { return this->view_direction; }
         void setViewDirection(glm::vec4 new_view_direction) { this->view_direction = new_view_direction; }
 
+        glm::mat4 getModel() { return this->model; }
+        void updateModelMatrix(glm::vec4 position, glm::vec3 scaling_factor, glm::vec4 view_direction);
+
+        bounding_box getBoundingBox() { return *this->caixa; }
+        bounding_sphere getBoundingSphere() { return *this->esfera; }
+        bounding_plane getBoundingPlane() { return *this->plano; }
+
     private:
         float speed;
         glm::vec3 scaling_factor;
         glm::vec4 position;
         glm::vec4 view_direction;
+        glm::mat4 model;
+        bounding_box* caixa;
+        bounding_sphere* esfera;
+        bounding_plane* plano;
 };
 
 #endif

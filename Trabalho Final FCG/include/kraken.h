@@ -14,8 +14,11 @@ struct atributos_base_kraken{
 class kraken : public enemy
 {
     public:
-        kraken(STANDARD_KRAKEN_ATTRIBUTES atributos_kraken, glm::vec4 starter_position, glm::vec4 starter_view_direction, glm::vec3 starter_scaling_factor);
+        kraken(STANDARD_KRAKEN_ATTRIBUTES atributos_kraken, glm::vec4 starter_position, glm::vec4 starter_view_direction, glm::vec3 starter_scaling_factor, SceneObject objeto);
         virtual ~kraken();
+
+        glm::vec4 getTransformedBboxMin() { return this->getModel() * glm::vec4(this->getBoundingBox().getBboxMin(),1.0f); }
+        glm::vec4 getTransformedBboxMax() { return this->getModel() * glm::vec4(this->getBoundingBox().getBboxMax(),1.0f); }
 
     protected:
 

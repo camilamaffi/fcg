@@ -6,7 +6,7 @@
 class entity : public object
 {
     public:
-        entity(int health_points, int attack_power, int damage_resistance, float speed, glm::vec4 starter_position, glm::vec4 view_direction, glm::vec3 scaling_factor);
+        entity(int health_points, int attack_power, int damage_resistance, float speed, glm::vec4 starter_position, glm::vec4 view_direction, glm::vec3 scaling_factor, SceneObject objeto);
         virtual ~entity();
 
         int getHealthPoints() { return health_points; }

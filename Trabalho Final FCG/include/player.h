@@ -7,13 +7,13 @@ struct atributos_base_jogador{
     const int health_points = 10;
     const int attack_power = 5;
     const int damage_resistance = 1;
-    const double speed = 50.0;
+    const double speed = 5.0;
 }typedef STANDARD_PLAYER_ATTRIBUTES;
 
 class player : public entity
 {
     public:
-        player(STANDARD_PLAYER_ATTRIBUTES atributos_jogador, glm::vec4 starter_position, glm::vec4 starter_view_direction, glm::vec3 starter_scaling_factor);
+        player(STANDARD_PLAYER_ATTRIBUTES atributos_jogador, glm::vec4 starter_position, glm::vec4 starter_view_direction, glm::vec3 starter_scaling_factor, SceneObject objeto);
         virtual ~player();
 
         void setPlayerPosition(glm::vec4 new_position) {
@@ -44,6 +44,10 @@ class player : public entity
         bool attackIsValid(double momento_atual);
 
         double getTempoParaJogadorAtacarDeNovo() { return this->tempo_para_jogador_atacar_de_novo; }
+
+        glm::vec4 getTransformedBsphereCentro() { return this->getModel() * glm::vec4(this->getBoundingSphere().getCentro()); }
+        float getTransformedBsphereRaio() { return this->getScalingFactor().x * this->getBoundingSphere().getRaio(); }
+
 
 
     protected:

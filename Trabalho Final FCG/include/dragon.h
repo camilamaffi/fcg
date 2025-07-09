@@ -13,12 +13,15 @@ struct atributos_base_dragao{
 class dragon : public enemy
 {
     public:
-        dragon(STANDARD_DRAGON_ATTRIBUTES atributos_dragao, glm::vec4 starter_position, glm::vec4 starter_view_direction, glm::vec3 starter_scaling_factor);
+        dragon(STANDARD_DRAGON_ATTRIBUTES atributos_dragao, glm::vec4 starter_position, glm::vec4 starter_view_direction, glm::vec3 starter_scaling_factor, SceneObject objeto);
         virtual ~dragon();
 
         double getIntervaloEntreAtaques() { return this->intervalo_entre_ataques; }
 
         bool attackIsValid(double momento_atual);
+
+        glm::vec4 getTransformedBboxMin() { return this->getModel() * glm::vec4(this->getBoundingBox().getBboxMin(),1.0f); }
+        glm::vec4 getTransformedBboxMax() { return this->getModel() * glm::vec4(this->getBoundingBox().getBboxMax(),1.0f); }
 
     private:
         const double intervalo_entre_ataques = 3.0;
