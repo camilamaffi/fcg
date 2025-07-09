@@ -44,7 +44,9 @@
 		<Unit filename="include/GLFW/glfw3native.h" />
 		<Unit filename="include/KHR/khrplatform.h" />
 		<Unit filename="include/bezierBuilder.h" />
-		<Unit filename="include/boundingBox.h" />
+		<Unit filename="include/bounding_box.h" />
+		<Unit filename="include/bounding_plane.h" />
+		<Unit filename="include/bounding_sphere.h" />
 		<Unit filename="include/camera.h" />
 		<Unit filename="include/cave.h" />
 		<Unit filename="include/collisions.h" />
@@ -442,7 +444,9 @@
 		<Unit filename="include/tiny_obj_loader.h" />
 		<Unit filename="include/utils.h" />
 		<Unit filename="src/bezierBuilder.cpp" />
-		<Unit filename="src/boundingBox.cpp" />
+		<Unit filename="src/bounding_box.cpp" />
+		<Unit filename="src/bounding_plane.cpp" />
+		<Unit filename="src/bounding_sphere.cpp" />
 		<Unit filename="src/camera.cpp" />
 		<Unit filename="src/cave.cpp" />
 		<Unit filename="src/collisions.cpp" />
