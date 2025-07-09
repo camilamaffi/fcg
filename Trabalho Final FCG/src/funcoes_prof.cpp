@@ -225,6 +225,10 @@ void BuildTrianglesAndAddToVirtualScene(ObjModel* model, std::map<std::string, S
     std::vector<float>  normal_coefficients;
     std::vector<float>  texture_coefficients;
 
+    //Usados para calcular os maiores e menores valores dos vértices que compõem o objeto
+    glm::vec3 bbox_min = glm::vec3(FLT_MAX,FLT_MAX,FLT_MAX);
+    glm::vec3 bbox_max = glm::vec3(-FLT_MAX,-FLT_MAX,-FLT_MAX);
+
     for (size_t shape = 0; shape < model->shapes.size(); ++shape)
     {
         size_t first_index = indices.size();
@@ -248,6 +252,25 @@ void BuildTrianglesAndAddToVirtualScene(ObjModel* model, std::map<std::string, S
                 model_coefficients.push_back( vy ); // Y
                 model_coefficients.push_back( vz ); // Z
                 model_coefficients.push_back( 1.0f ); // W
+
+                if (bbox_min.x > vx){
+                    bbox_min.x = vx;
+                }
+                if (bbox_min.y > vy){
+                    bbox_min.y = vy;
+                }
+                if (bbox_min.z > vz){
+                    bbox_min.z = vz;
+                }
+                if (bbox_max.x < vx){
+                    bbox_max.x = vx;
+                }
+                if (bbox_max.y < vy){
+                    bbox_max.y = vy;
+                }
+                if (bbox_max.z < vz){
+                    bbox_max.z = vz;
+                }
 
                 // Inspecionando o código da tinyobjloader, o aluno Bernardo
                 // Sulzbach (2017/1) apontou que a maneira correta de testar se
@@ -283,7 +306,8 @@ void BuildTrianglesAndAddToVirtualScene(ObjModel* model, std::map<std::string, S
         theobject.num_indices    = last_index - first_index + 1; // Número de indices
         theobject.rendering_mode = GL_TRIANGLES;       // Índices correspondem ao tipo de rasterização GL_TRIANGLES.
         theobject.vertex_array_object_id = vertex_array_object_id;
-
+        theobject.bbox_min = bbox_min;
+        theobject.bbox_max = bbox_max;
         g_VirtualScene[model->shapes[shape].name] = theobject;
     }
 
