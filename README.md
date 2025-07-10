@@ -37,7 +37,7 @@ especialmente quando os erros envolviam desconhecimento sobre o comportamento do
 **Como Executar:**
 1) Clone este repositório (git clone https://github.com/camilamaffi/fcg.git)
 2) Tenha alguma IDE que tenha suporte para aplicações em C/C++ (de preferência CODE::BLOCKS, que já vem com compilador embutido) e algum compilador GCC, se já não vier embutido
-3) Abra o project file (Trabalho Final FCG) com a IDE e compile-o
+3) Abra o project file (Trabalho Final FCG.cbp) com a IDE e compile-o
 4) Execute o executável criado na pasta bin
 
 **Como jogar:**
