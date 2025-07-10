@@ -323,8 +323,8 @@ int main(int argc, char* argv[])
 
     // rochas
     rocha pedra1(velocidade_objeto_inanimado, glm::vec4(80.0f,0.0f,-50.0f,1.0f), glm::vec3(1.0f,1.0f,1.0f), glm::vec4(0.0f,0.0f,0.0f,0.0f), g_VirtualScene[nome_rocha]);
-    rocha pedra2(velocidade_objeto_inanimado, glm::vec4(-87.0f,0.0f,7.0f,1.0f), glm::vec3(1.0f,1.0f,1.0f), glm::vec4(0.0f,0.0f,0.0f,0.0f), g_VirtualScene[nome_rocha]);
-    //rocha pedra3(velocidade_objeto_inanimado, glm::vec4(1.0f,0.0f,24.0f,1.0f), glm::vec3(1.0f,1.0f,1.0f), glm::vec4(0.0f,0.0f,0.0f,0.0f), g_VirtualScene[nome_rocha]);
+    //rocha pedra2(velocidade_objeto_inanimado, glm::vec4(-87.0f,0.0f,30.0f,1.0f), glm::vec3(1.0f,1.0f,1.0f), glm::vec4(20.0f,0.0f,66.0f,0.0f), g_VirtualScene[nome_rocha]);
+    //rocha pedra3(velocidade_objeto_inanimado, glm::vec4(1.0f,0.0f,-30.0f,1.0f), glm::vec3(1.0f,1.0f,1.0f), glm::vec4(0.0f,0.0f,0.0f,0.0f), g_VirtualScene[nome_rocha]);
     //rocha pedra4(velocidade_objeto_inanimado, glm::vec4(2.0f,0.0f,-5.0f,1.0f), glm::vec3(1.0f,1.0f,1.0f), glm::vec4(0.0f,0.0f,0.0f,0.0f), g_VirtualScene[nome_rocha]);
     //rocha pedra5(velocidade_objeto_inanimado, glm::vec4(-6.0f,0.0f,-4.0f,1.0f), glm::vec3(1.0f,1.0f,1.0f), glm::vec4(0.0f,0.0f,0.0f,0.0f), g_VirtualScene[nome_rocha]);
     std::vector<rocha> pedras = {pedra1};//, pedra2, pedra3, pedra4, pedra5};
@@ -353,7 +353,7 @@ int main(int argc, char* argv[])
     STANDARD_SQUID_ATTRIBUTES atributos_lula;
     squid lula1(atributos_lula, glm::vec4(pedestal_do_dragao.getPosition().x+12.0f, pedestal_do_dragao.getPosition().y+2.0f,pedestal_do_dragao.getPosition().z+12.0f ,1.0f), (jogador.getPosition() - glm::vec4(pedestal_do_dragao.getPosition().x+12.0f, pedestal_do_dragao.getPosition().y+2.0f,pedestal_do_dragao.getPosition().z+12.0f ,1.0f)), glm::vec3(1.0f,1.0f,1.0f), g_VirtualScene[nome_kraken_corpo]);
     squid lula2(atributos_lula, glm::vec4(pedestal_do_dragao.getPosition().x-12.0f, pedestal_do_dragao.getPosition().y+2.0f,pedestal_do_dragao.getPosition().z+12.0f ,1.0f), (jogador.getPosition() - glm::vec4(pedestal_do_dragao.getPosition().x-12.0f, pedestal_do_dragao.getPosition().y+2.0f,pedestal_do_dragao.getPosition().z+12.0f ,1.0f)), glm::vec3(1.0f,1.0f,1.0f), g_VirtualScene[nome_kraken_corpo]);
-    squid lula3(atributos_lula, glm::vec4(pedestal_do_dragao.getPosition().x, pedestal_do_dragao.getPosition().y+2.0f,pedestal_do_dragao.getPosition().z+12.0f ,1.0f), (jogador.getPosition() - (pedestal_do_dragao.getPosition().x, pedestal_do_dragao.getPosition().y+2.0f,pedestal_do_dragao.getPosition().z+12.0f,1.0f)), glm::vec3(1.0f,1.0f,1.0f), g_VirtualScene[nome_kraken_corpo]);
+    squid lula3(atributos_lula, glm::vec4(pedestal_do_dragao.getPosition().x, pedestal_do_dragao.getPosition().y+2.0f,pedestal_do_dragao.getPosition().z+12.0f ,1.0f), (jogador.getPosition() - glm::vec4(pedestal_do_dragao.getPosition().x, pedestal_do_dragao.getPosition().y+2.0f,pedestal_do_dragao.getPosition().z+12.0f,1.0f)), glm::vec3(1.0f,1.0f,1.0f), g_VirtualScene[nome_kraken_corpo]);
     std::vector<squid*> lulas = {&lula1, &lula2, &lula3};
 
     //dragão
@@ -721,7 +721,7 @@ int main(int argc, char* argv[])
         // Precisamos pedir para que o opengl faça o culling das faces externas da esfera
         glCullFace(GL_FRONT);
         model = Matrix_Translate(jogador.getPosition().x,jogador.getPosition().y,jogador.getPosition().z) // Skybox fica relativa ao jogador
-              * Matrix_Scale(100.0f, 100.0f, 100.0f);
+              * Matrix_Scale(500.0f, 500.0f, 500.0f);
         glUniformMatrix4fv(shaders.g_model_uniform, 1, GL_FALSE, glm::value_ptr(model));
         glUniform1i(shaders.g_object_id_uniform, SKYBOX);
         DrawVirtualObject(nome_skybox, g_VirtualScene);
@@ -883,7 +883,9 @@ int main(int argc, char* argv[])
     // Finalizamos o uso dos recursos do sistema operacional
     glfwTerminate();
 
-    printf("parabens, voce venceu");
+    if(!chefe.is_alive){
+        printf("parabens, voce venceu");
+    }
 
     // Fim do programa
     return 0;
