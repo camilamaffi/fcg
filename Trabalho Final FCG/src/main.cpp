@@ -647,7 +647,8 @@ int main(int argc, char* argv[])
         }
         // Kraken afetado por gravidade se está vivo
         else if (!boxPlaneCollision(chefe.getTransformedBboxMin(), chefe.getTransformedBboxMax(), chao.getTransformedBplaneMin(), chao.getTransformedBplaneMax())){
-            chefe.setPosition(chefe.getPosition() += scalarMultiplication(gravity,deltat));
+            chefe.setPosition(chefe.getPosition() += scalarMultiplication(gravity,deltat*0.01f));
+            chefe.setPosition(glm::vec4(0.0f, -3.0f, 30.0f, 1.0f));
         }
 
         // Agora computamos a matriz de Projeção.
