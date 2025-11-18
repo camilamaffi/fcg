@@ -13,7 +13,7 @@
 - Implementação de toda a lógica de movimentação dos objetos do jogo
 
 **Eu fiz uso do chatGPT para a escrita de algumas funções:**
-- em main.cpp: me ajudou a realizar o uso de glGetUniformLocation() e glUniform1i() para associar corretamente as texturas aos modelos
+- em main.cpp: me ajudou a entender o uso de glGetUniformLocation() e glUniform1i() para associar corretamente as texturas aos modelos
 - em collisions.cpp: me ajudou a escrever os testes de colisão caixa-esfera entre as boundingBoxes/Spheres dos modelos
 - em bezierBuilder.cpp: me ajudou a escrever a função que calcula uma curva de Bézier de grau 3 dados 4 pontos e o fator t [0.0,1.0]
 Fora isso, o chatGPT foi mais útil na hora de realizar debugging, conseguindo facilmente encontrar e explicar os erros sobre os quais eu ainda não tinha conhecimento teórico o suficiente para resolver, 
